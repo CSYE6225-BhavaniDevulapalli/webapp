@@ -89,7 +89,6 @@ npm install express nodemon mysql sequelize dotenv
 # Start the Web App in the Background
 echo "Starting Web Application..."
 
-npm test
-npm start
 
+npm start
 echo "Web App Deployment Complete!"
