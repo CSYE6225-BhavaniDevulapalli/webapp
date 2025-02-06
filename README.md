@@ -77,3 +77,38 @@ Check application logs in the terminal for errors during startup or requests.
 Ensure all dependencies are installed by running npm install.
 
 
+
+**Assignment 2:**
+Jest Testing for API Endpoints
+
+This application uses Jest & Supertest to ensure API reliability and proper error handling.
+
+The following tests validate the /healthz endpoint:
+
+Test Scenario	Expected Response	Status Code
+GET /healthz with valid DB connection	Responds with an empty body	200 OK
+GET /healthz when DB is down	Returns an error message	503 Service Unavailable
+GET /healthz with query parameters (?test=1)	Returns error	400 Bad Request
+POST /healthz request	Method not allowed	405 Method Not Allowed
+PUT /healthz request	Method not allowed	405 Method Not Allowed
+PATCH /healthz request	Method not allowed	405 Method Not Allowed
+DELETE /healthz request	Method not allowed	405 Method Not Allowed
+HEAD /healthz request	Method not allowed	405 Method Not Allowed
+OPTIONS /healthz request	Method not allowed	405 Method Not Allowed
+
+**Running Jest Tests**
+To execute the test suite:
+npm test 
+
+**Automated Shell Script for Deployment**
+
+This project includes a shell script (setup.sh) to automate the deployment and setup process of the web application.
+
+The script performs the following tasks:
+
+Loads environment variables from .env.
+Installs required system dependencies (MySQL, Node.js, npm).
+Creates a new MySQL database and user with appropriate privileges.
+Unzips and sets up the web application in /opt/csye6225.
+Installs necessary dependencies (npm install).
+Starts the application and runs Jest tests to validate functionality.
