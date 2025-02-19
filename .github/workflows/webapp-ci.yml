@@ -34,7 +34,7 @@ jobs:
       - name: Install MySQL
         run: |
           sudo apt-get update
-          sudo apt-get install -y mysql-server 
+          sudo apt-get install -y mysql-server mysql-client
           sudo systemctl start mysql
           sudo systemctl enable mysql
 
@@ -44,17 +44,12 @@ jobs:
       - name: Check MySQL service status
         run: sudo systemctl status mysql || true
 
-      # - name: Set MySQL Root Password (If Not Set)
-      #   run: |
-      #     sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
-      #     sudo mysql -e "FLUSH PRIVILEGES;"
-
       - name: Create Database and User If Not Exists
         run: |
-          mysql -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
-          mysql -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
-          mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
-          mysql -e "FLUSH PRIVILEGES;"
+          sudo mysql -u root -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
+          sudo mysql -u root -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
+          sudo mysql -u root -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
+          sudo mysql -u root -e "FLUSH PRIVILEGES;"
 
       - name: Run Integration Tests
         run: npm run test
