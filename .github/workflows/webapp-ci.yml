@@ -1,50 +1,87 @@
 name: Node.js CI with MySQL
- 
+
 on:
   pull_request:
     branches: ["main"]
- 
+
 jobs:
   CI:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:latest
+        image: mysql:5.7  # ✅ More stable MySQL version
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASS }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASS }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
         ports:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
-          --health-timeout=10s
-          --health-retries=10
- 
+          --health-timeout=5s
+          --health-retries=15
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
- 
+
+      ### 🔹 Verify MySQL Secrets 🔹 ###
+      - name: Debug MySQL Secrets
+        run: |
+          echo "Checking if DB_ROOT_PASS is set..."
+          if [ -z "${DB_ROOT_PASS}" ]; then
+            echo "❌ ERROR: DB_ROOT_PASS is EMPTY! Check GitHub Secrets."
+            exit 1
+          else
+            echo "✅ SUCCESS: DB_ROOT_PASS is set."
+          fi
+        env:
+          DB_ROOT_PASS: ${{ secrets.DB_ROOT_PASS }}
+
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "23.7.0"
- 
+          node-version: "18.x"
+
       - name: Configure Environment Variables
         run: |
-          echo > .env
-          ls -al | grep .env
           echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
-          echo DB_HOST=127.0.0.1 >> .env  # Using MySQL service from GitHub Actions
+          echo DB_HOST=127.0.0.1 >> .env  # Connects to MySQL inside GitHub Actions
           echo DB_USER=${{ secrets.DB_USER }} >> .env
-          echo DB_PASSWORD=${{ secrets.DB_PASS }} >> .env
+          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
           echo DB_NAME=${{ secrets.DB_NAME }} >> .env
           echo DB_PORT=${{ secrets.DB_PORT }} >> .env
           echo PORT=${{ secrets.PORT }} >> .env
- 
+
       - name: Install Dependencies
         run: npm install
- 
+
+      ### 🔹 Manually Wait for MySQL 🔹 ###
+      - name: Manually Wait for MySQL
+        run: |
+          echo "⏳ Waiting for MySQL to be ready..."
+          for i in {1..30}; do
+            if mysqladmin ping -h "127.0.0.1" --silent; then
+              echo "✅ MySQL is UP!"
+              exit 0
+            fi
+            echo "⏳ Waiting for MySQL... ($i/30)"
+            sleep 2
+          done
+          echo "❌ MySQL did not start!"
+          exit 1
+
+      ### 🔹 Print MySQL Logs if Unhealthy 🔹 ###
+      - name: Print MySQL Logs (If Unhealthy)
+        run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7") || echo "❌ No MySQL container found!"
+
+      - name: Verify Database Connection
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD -e "SHOW DATABASES;"
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+
       - name: Run Tests
         run: npm test
- 
