@@ -42,13 +42,12 @@ jobs:
       - name: Wait for MySQL to Start
         run: sleep 10  # Ensures MySQL service is fully running before creating the database
 
-      - name: Check MySQL Authentication Method
-        run: sudo mysql -u root -e "SELECT user, host, plugin FROM mysql.user WHERE user='root';"
+      # - name: Check MySQL Authentication Method
+      #   run: sudo mysql -u root -e "SELECT user, host, plugin FROM mysql.user WHERE user='root';"
 
       - name: Set MySQL Root Password and Authentication
         run: |
-          sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_PASSWORD';"
-          sudo mysql -u root -e "FLUSH PRIVILEGES;"
+          sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '$DB_PASSWORD';"
 
       - name: Create Database and User If Not Exists
         run: |
