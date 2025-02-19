@@ -112,3 +112,6 @@ Creates a new MySQL database and user with appropriate privileges.
 Unzips and sets up the web application in /opt/csye6225.
 Installs necessary dependencies (npm install).
 Starts the application and runs Jest tests to validate functionality.
+
+
+#testing for workflow
