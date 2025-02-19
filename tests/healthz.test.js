@@ -8,6 +8,7 @@ let server;
 describe("🔹 Health Check API Tests", () => {
   beforeAll(async () => {
     await sequelize.sync(); 
+    
   });
 
   afterAll(async () => {
