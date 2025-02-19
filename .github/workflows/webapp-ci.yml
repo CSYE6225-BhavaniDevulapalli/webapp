@@ -62,11 +62,11 @@ jobs:
     runs-on: ubuntu-latest
     env:  
       NODE_ENV: ${{ secrets.NODE_ENV }}
-      DB_HOST: 127.0.0.1  
+      DB_HOST: ${{secrets.DB_HOST}} 
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
-      DB_PORT: 3306  # Set fixed MySQL port
+      DB_PORT: ${{secrets.DB_PORT}}
       PORT: ${{ secrets.PORT }}
 
     steps:
@@ -94,7 +94,7 @@ jobs:
         run: |
           sudo systemctl restart mysql
           sudo systemctl status mysql --no-pager
-          mysql -h 127.0.0.1 -P 3306 -u"${{ secrets.DB_USER }}" -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
+          mysql -h "$DB_HOST" -P "$DB_PORT" -u"${{ secrets.DB_USER }}" -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
 
       - name: Install Dependencies
         run: npm install
