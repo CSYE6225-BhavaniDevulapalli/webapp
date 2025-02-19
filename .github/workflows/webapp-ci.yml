@@ -7,12 +7,15 @@ on:
 jobs:
   CI:
     runs-on: ubuntu-latest
+    env:  # Define environment variables globally for the job
+      DB_ROOT_PASS: ${{ secrets.DB_PASSWORD }}
+      DB_NAME: ${{ secrets.DB_NAME }}
     services:
       mysql:
-        image: mysql:5.7  # ✅ More stable MySQL version
+        image: mysql:5.7
         env:
-          MYSQL_ROOT_PASSWORD: "root"
-          MYSQL_DATABASE: "test_db"
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
         ports:
           - 3306:3306
         options: >-
@@ -20,23 +23,22 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=15
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      ### 🔹 Verify MySQL Secrets 🔹 ###
+      ###  Verify MySQL Secrets  ###
       - name: Debug MySQL Secrets
         run: |
-          echo "Checking if DB_ROOT_PASS is set..."
-          if [ -z "${DB_ROOT_PASS}" ]; then
-            echo "❌ ERROR: DB_ROOT_PASS is EMPTY! Check GitHub Secrets."
+          echo "Checking if DB_PASSWORD is set..."
+          if [ -z "${DB_PASSWORD}" ]; then
+            echo " ERROR: DB_ROOT_PASS is EMPTY! Check GitHub Secrets."
             exit 1
           else
-            echo "✅ SUCCESS: DB_ROOT_PASS is set."
+            echo " SUCCESS: DB_PASSWORD is set."
           fi
         env:
-          DB_ROOT_PASS: ${{ secrets.DB_ROOT_PASS }}
+          DB_ROOT_PASS: ${{ secrets.DB_PASSWORD }}
 
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -56,22 +58,22 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
-      ### 🔹 Manually Wait for MySQL 🔹 ###
+      ###  Manually Wait for MySQL  ###
       - name: Manually Wait for MySQL
         run: |
           echo "⏳ Waiting for MySQL to be ready..."
           for i in {1..30}; do
             if mysqladmin ping -h "127.0.0.1" --silent; then
-              echo "✅ MySQL is UP!"
+              echo " MySQL is UP!"
               exit 0
             fi
-            echo "⏳ Waiting for MySQL... ($i/30)"
+            echo "Waiting for MySQL... ($i/30)"
             sleep 2
           done
-          echo "❌ MySQL did not start!"
+          echo "MySQL did not start!"
           exit 1
 
-      ### 🔹 Print MySQL Logs if Unhealthy 🔹 ###
+      ### Print MySQL Logs if Unhealthy  ###
       - name: Print MySQL Logs (If Unhealthy)
         run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7") || echo "❌ No MySQL container found!"
 
