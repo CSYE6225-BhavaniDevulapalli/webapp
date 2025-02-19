@@ -7,8 +7,6 @@ let server;
 
 describe("🔹 Health Check API Tests", () => {
   beforeAll(async () => {
-    
-    
     await sequelize.sync(); 
   });
 
@@ -33,7 +31,6 @@ describe("🔹 Health Check API Tests", () => {
 
     const res = await request(app).get("/healthz");
     expect(res.statusCode).toBe(503); 
-    
     sequelize.authenticate.mockRestore(); 
   });
 
