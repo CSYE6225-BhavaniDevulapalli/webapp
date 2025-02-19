@@ -1,15 +1,15 @@
 name: Node.js CI
-
+ 
 on:
   pull_request:
     branches:
       - main
-
+ 
 jobs:
   build:
     name: Build and Integration Tests
     runs-on: ubuntu-latest
-
+ 
     env:
       PORT: ${{ secrets.PORT }}
       NODE_ENV: ${{ secrets.NODE_ENV }}
@@ -18,45 +18,45 @@ jobs:
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
+ 
     services:
       mysql:
-        image: mysql:latest  # ✅ Uses the latest MySQL version from Docker Hub
+        image: mysql:latest  
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  # ✅ Root password (from GitHub Secrets)
-          MYSQL_DATABASE: ${{ secrets.DB_NAME }}  # ✅ Creates database automatically
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}  
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p${{ secrets.DB_PASSWORD }}"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-
+ 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
+ 
       - name: Use Node.js 20.13.1
         uses: actions/setup-node@v3
         with:
           node-version: '20.13.1'
-
+ 
       - name: Install npm dependencies
         run: npm install
-
+ 
       - name: Wait for MySQL to Be Ready
-        run: sleep 10  # Ensures MySQL is fully initialized before executing commands
-
+        run: sleep 10  
+ 
       - name: Check MySQL Connection
         run: |
           mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
-
+ 
       - name: Create Application User and Grant Privileges
         run: |
           mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';"
           mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';"
           mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "FLUSH PRIVILEGES;"
-
+ 
       - name: Run Integration Tests
         run: npm run test
