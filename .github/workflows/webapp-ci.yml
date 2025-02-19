@@ -1,62 +1,50 @@
-name: Node.js CI
+name: Node.js CI with MySQL
  
 on:
   pull_request:
-    branches:
-      - main
+    branches: ["main"]
  
 jobs:
-  build:
-    name: Build and Integration Tests
+  CI:
     runs-on: ubuntu-latest
- 
-    env:
-      PORT: ${{ secrets.PORT }}
-      NODE_ENV: ${{ secrets.NODE_ENV }}
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
- 
     services:
       mysql:
-        image: mysql:latest  
+        image: mysql:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  
-          MYSQL_DATABASE: ${{ secrets.DB_NAME }}  
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root"
+          --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
  
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
  
-      - name: Use Node.js 20.13.1
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.13.1'
+          node-version: "23.7.0"
  
-      - name: Install npm dependencies
+      - name: Configure Environment Variables
+        run: |
+          echo > .env
+          ls -al | grep .env
+          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+          echo DB_HOST=127.0.0.1 >> .env  # Using MySQL service from GitHub Actions
+          echo DB_USER=${{ secrets.DB_USER }} >> .env
+          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
+          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
+          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          echo PORT=${{ secrets.PORT }} >> .env
+ 
+      - name: Install Dependencies
         run: npm install
  
-      - name: Wait for MySQL to Be Ready
-        run: sleep 10  
+      - name: Run Tests
+        run: npm test
  
-      - name: Check MySQL Connection
-        run: |
-          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
- 
-      - name: Create Application User and Grant Privileges
-        run: |
-          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "CREATE USER IF NOT EXISTS '$DB_USER'@'%' IDENTIFIED BY '$DB_PASSWORD';"
-          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';"
-          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "FLUSH PRIVILEGES;"
- 
-      - name: Run Integration Tests
-        run: npm run test
