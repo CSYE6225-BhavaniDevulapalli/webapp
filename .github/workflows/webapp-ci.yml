@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     env:  
       NODE_ENV: ${{ secrets.NODE_ENV }}
-      DB_HOST: ${{secrets.DB_HOST}}
+      DB_HOST: 127.0.0.1  
       DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
@@ -45,8 +45,7 @@ jobs:
       - name: Verify Database Connection
         run: |
           sudo apt-get install -y mysql-client
-          
-          mysql -h "$DB_HOST" -P "$DB_PORT" -u"${{ secrets.DB_USER }}" -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
+          mysql -h 127.0.0.1 -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SHOW DATABASES;"
           
       - name: Run Tests
         run: npm test
