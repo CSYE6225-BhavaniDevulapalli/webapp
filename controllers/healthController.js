@@ -19,7 +19,7 @@ const health = async (req, res) => {
     console.log('Health check successful. Sending status: 200');
     return res.status(200).send();// 200 OK
   } catch (error) {
-    console.error('Health check failed. Error:', error.message);
+   // console.error('Health check failed. Error:', error.message);
     console.log('Sending status: 503');
     return res.status(503).send(); 
   }
