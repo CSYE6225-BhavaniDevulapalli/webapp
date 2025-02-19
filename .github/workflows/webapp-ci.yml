@@ -45,7 +45,8 @@ jobs:
       - name: Verify Database Connection
         run: |
           sudo apt-get install -y mysql-client
-          mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SHOW DATABASES;"
+          
+          mysql -h "$DB_HOST" -P "$DB_PORT" -u"${{ secrets.DB_USER }}" -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
           
       - name: Run Tests
         run: npm test
