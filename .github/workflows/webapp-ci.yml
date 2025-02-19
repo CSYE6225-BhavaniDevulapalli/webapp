@@ -12,16 +12,16 @@ jobs:
 
     services:
       mysql:
-        image: mysql:8.0  # Use MySQL 8.0
+        image: mysql:8.0
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  # ✅ Ensure root password is set
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
           MYSQL_USER: ${{ secrets.DB_USER }}
           MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -u root -p${{ secrets.DB_PASSWORD }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
@@ -29,7 +29,7 @@ jobs:
     env:
       PORT: ${{ secrets.PORT }}
       NODE_ENV: ${{ secrets.NODE_ENV }}
-      DB_HOST: 127.0.0.1  # GitHub Actions maps MySQL service to localhost
+      DB_HOST: 127.0.0.1  # Use localhost to connect to MySQL
       DB_PORT: 3306
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USER: ${{ secrets.DB_USER }}
@@ -52,13 +52,13 @@ jobs:
 
       - name: Check MySQL Connection
         run: |
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p"$DB_PASSWORD" -e "SHOW DATABASES;"
+          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "SHOW DATABASES;"
 
       - name: Create Database and Grant Privileges
         run: |
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p"$DB_PASSWORD" -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';"
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p"$DB_PASSWORD" -e "FLUSH PRIVILEGES;"
+          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
+          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'%';"
+          mysql -h 127.0.0.1 -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" -e "FLUSH PRIVILEGES;"
 
       - name: Run Integration Tests
         run: npm run test
