@@ -11,8 +11,8 @@ jobs:
       mysql:
         image: mysql:5.7  # ✅ More stable MySQL version
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASS }}
-          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+          MYSQL_ROOT_PASSWORD: "root"
+          MYSQL_DATABASE: "test_db"
         ports:
           - 3306:3306
         options: >-
