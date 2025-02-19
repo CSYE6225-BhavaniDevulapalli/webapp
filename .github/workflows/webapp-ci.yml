@@ -7,12 +7,18 @@ on:
 jobs:
   CI:
     runs-on: ubuntu-latest
-    env:  # Define environment variables globally for the job
+    env:  
+      NODE_ENV: ${{ secrets.NODE_ENV }}
+      DB_HOST: 127.0.0.1  
+      DB_USER: ${{ secrets.DB_USER }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       DB_NAME: ${{ secrets.DB_NAME }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      PORT: ${{ secrets.PORT }}
+
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:latest
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
@@ -23,67 +29,23 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=15
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      ###  Verify MySQL Secrets  ###
-      - name: Debug MySQL Secrets
-        run: |
-          echo "Checking if DB_PASSWORD is set..."
-          if [ -z "${DB_PASSWORD}" ]; then
-            echo " ERROR: DB_PASSWORD is EMPTY! Check GitHub Secrets."
-            exit 1
-          else
-            echo " SUCCESS: DB_PASSWORD is set."
-          fi
-        env:
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "18.x"
-
-      - name: Configure Environment Variables
-        run: |
-          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
-          echo DB_HOST=127.0.0.1 >> .env  # Connects to MySQL inside GitHub Actions
-          echo DB_USER=${{ secrets.DB_USER }} >> .env
-          echo DB_PASSWORD=${{ secrets.DB_PASSWORD }} >> .env
-          echo DB_NAME=${{ secrets.DB_NAME }} >> .env
-          echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-          echo PORT=${{ secrets.PORT }} >> .env
+          node-version: "20.13.1"
 
       - name: Install Dependencies
         run: npm install
 
-      ###  Manually Wait for MySQL  ###
-      - name: Manually Wait for MySQL
-        run: |
-          echo "⏳ Waiting for MySQL to be ready..."
-          for i in {1..30}; do
-            if mysqladmin ping -h "127.0.0.1" --silent; then
-              echo " MySQL is UP!"
-              exit 0
-            fi
-            echo "Waiting for MySQL... ($i/30)"
-            sleep 2
-          done
-          echo "MySQL did not start!"
-          exit 1
-
-      ### Print MySQL Logs if Unhealthy  ###
-      - name: Print MySQL Logs (If Unhealthy)
-        run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7") || echo "❌ No MySQL container found!"
-
       - name: Verify Database Connection
         run: |
           sudo apt-get install -y mysql-client
-          mysql -h 127.0.0.1 -P 3306 -u $DB_USER -p$DB_PASSWORD -e "SHOW DATABASES;"
-        env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
+          mysql -h 127.0.0.1 -P "$DB_PORT" -u "$DB_USER" -p"$DB_PASSWORD" -e "SHOW DATABASES;"
+          
       - name: Run Tests
         run: npm test
