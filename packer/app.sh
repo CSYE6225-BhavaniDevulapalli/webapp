@@ -34,7 +34,7 @@ if [ -f /tmp/webapp.zip ]; then
     sudo cp /tmp/webapp.zip /opt/csye6225/
     cd /opt/csye6225/
     echo ">>>>>>> 2"
-    sudo unzip -o webapp.zip -d /opt/csye6225 || { echo "Error: Failed to extract web application"; exit 1; }
+    sudo unzip -o webapp.zip -d /opt/csye6225/webapp || { echo "Error: Failed to extract web application"; exit 1; }
     echo ">>>>>>> 3"
 else
     echo "Error: Web application ZIP file is missing! Exiting..."
