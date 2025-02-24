@@ -3,7 +3,7 @@ name: Build and Share Packer Images
 on:
   push:
     branches:
-      - main  # Runs only when code is merged to the main branch
+      - main  
 
 jobs:
   build-image:
