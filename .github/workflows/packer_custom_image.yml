@@ -1,76 +1,78 @@
-# name: Build Packer AMI & GCP Image
+name: Build and Share Packer Images
 
-# on:
-#   push:
-#     branches:
-#       - main  # Runs only when a PR is merged
+on:
+  push:
+    branches:
+      - main  # Runs only when code is merged to the main branch
 
-# jobs:
-#   packer_build:
-#     runs-on: ubuntu-latest
+jobs:
+  build-image:
+    name: Build AWS & GCP Images with Packer
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 1  # Fetch only the latest commit
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v3
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: us-east-1
+      - name: Set up AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Configure GCP Credentials
-#         uses: google-github-actions/auth@v1
-#         with:
-#           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - name: Set up GCP Credentials
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-#       - name: Install Packer
-#         uses: hashicorp/setup-packer@v3
-#         with:
-#           version: latest
+      - name: Install Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: latest
 
-#       - name: Run Packer Format & Validate
-#         run: |
-#           packer fmt -check .
-#           packer init .
-#           if ! packer validate .; then
-#             echo "Packer validation failed!"
-#             exit 1
-#           fi
+      - name: Zip Repository Code
+        run: |
+          zip -r webapp.zip ./
 
-#       - name: Build AWS & GCP Images in Parallel
-#         run: |
-#           echo "Starting Packer Build..."
-#           packer build \
-#             -var 'aws_region=us-east-1' \
-#             -var 'gcp_project_id=csye6225-dev-451702' \
-#             -var 'source_ami=ami-04b4f1a9cf54c11d0' \
-#             -var 'instance_type=t2.micro' \
-#             packer-template.json
-#         env:
-#           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      - name: Run Packer to Build Images
+        id: packer
+        run: |
+          cd packer
+          packer init main.pkr.hcl
+          packer build -machine-readable main.pkr.hcl | tee packer.log
 
-#       - name: Share AWS AMI with DEMO Account
-#         run: |
-#           echo "Fetching latest AMI ID..."
-#           AMI_ID=$(aws ec2 describe-images --owners self --query 'Images[*].[ImageId,CreationDate]' --output text | sort -k2 -r | head -n1 | awk '{print $1}')
-#           echo "AMI_ID=${AMI_ID}"
+          # Extract AWS AMI ID
+          AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2)
 
-#           echo "Making AMI private..."
-#           aws ec2 modify-image-attribute --image-id $AMI_ID --launch-permission "Remove=[{Group=all}]"
+          # Extract GCP Image ID
+          GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2)
 
-#           echo "Sharing AMI with DEMO AWS Account..."
-#           aws ec2 modify-image-attribute --image-id $AMI_ID --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }}]"
+          # Check if both AWS AMI and GCP Image were created successfully
+          if [ -n "$AMI_ID" ] && [ -n "$GCP_IMAGE_ID" ]; then
+              echo "New AWS AMI: $AMI_ID"
+              echo "New GCP Image: $GCP_IMAGE_ID"
 
-#       - name: Verify AMI & GCP Image Creation
-#         run: |
-#           echo "Verifying AWS AMI..."
-#           aws ec2 describe-images --image-ids $AMI_ID
+              echo "ami_id=$AMI_ID" >> $GITHUB_OUTPUT
+              echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_OUTPUT
+              echo "AMI_CREATED=true" >> $GITHUB_OUTPUT
+          else
+              echo "Image creation failed."
+              echo "AMI_CREATED=false" >> $GITHUB_OUTPUT
+              exit 1
+          fi
 
-#           echo "Verifying GCP Image..."
-#           gcloud compute images list --project csye6225-dev-451702 --filter="name:csye6225-*"
+      - name: Share AWS AMI with Demo Account
+        if: steps.packer.outputs.AMI_CREATED == 'true'
+        run: |
+          aws ec2 modify-image-attribute \
+            --image-id ${{ steps.packer.outputs.ami_id }} \
+            --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
+      
+      - name: Share GCP Image with Demo Account
+        if: steps.packer.outputs.AMI_CREATED == 'true'
+        run: |
+          gcloud compute images add-iam-policy-binding ${{ steps.packer.outputs.gcp_image_id }} \
+          --project=${{ secrets.GCP_PROJECT_ID }} \
+          --member="user:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
+          --role="roles/compute.imageUser"
