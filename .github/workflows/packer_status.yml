@@ -1,30 +1,41 @@
-# name: Packer Status Check
+name: Packer Status Check
 
-# on:
-#   pull_request:
-#     branches:
-#       - main  # Change this if your default branch is different
+on:
+  pull_request:
+    branches:
+      - main  # Runs on PRs to the main branch
 
-# jobs:
-#   packer-format-validate:
-#     name: Packer Format & Validate
-#     runs-on: ubuntu-latest
+jobs:
+  packer-format-validate:
+    name: Packer Format & Validate
+    runs-on: ubuntu-latest
 
-#     steps:
-#       - name: Checkout Repository
-#         uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-#       - name: Install Packer
-#         uses: hashicorp/setup-packer@v3
-#         with:
-#           version: latest  # Or specify a version like "1.10.0"
+      - name: zip repository code
+        run : zip -r webapp.zip .
 
-#       - name: Run packer fmt
-#         run: |
-#           packer fmt -check .
-        
+      - name: Install Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: latest  # Installs the latest version of Packer
 
-#       - name: Run packer validate
-#         run: |
-#           packer validate .
-        
+
+
+      - name: Run Packer Format Check
+        run: |
+          if ! packer fmt -check .; then
+            echo "Packer format check failed!"
+            exit 1
+          fi
+          echo "Packer format check passed."
+
+      - name: Run Packer Validate
+        run: |
+          if ! packer validate .; then
+            echo " Packer validation failed!"
+            exit 1
+          fi
+          echo " Packer validation passed."
