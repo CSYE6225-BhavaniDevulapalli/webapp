@@ -20,7 +20,7 @@ sudo useradd -r -g csye6225 -s /usr/sbin/nologin csye6225 || true
  
 # Ensure Application Directory Exists
 echo "Ensuring application directory exists..."
-sudo mkdir -p /opt/csye6225/webapp
+sudo mkdir -p /opt/csye6225/
 sudo chown -R csye6225:csye6225 /opt/csye6225
 sudo chmod -R 755 /opt/csye6225
 
@@ -34,7 +34,7 @@ if [ -f /tmp/webapp.zip ]; then
     sudo cp /tmp/webapp.zip /opt/csye6225/
     cd /opt/csye6225/
     echo ">>>>>>> 2"
-    sudo unzip -o webapp.zip -d /opt/csye6225/webapp || { echo "Error: Failed to extract web application"; exit 1; }
+    sudo unzip -o webapp.zip -d /opt/csye6225/ || { echo "Error: Failed to extract web application"; exit 1; }
     echo ">>>>>>> 3"
 else
     echo "Error: Web application ZIP file is missing! Exiting..."
