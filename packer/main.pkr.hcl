@@ -209,13 +209,27 @@ build {
 
 
   provisioner "file" {
-    source      = "./webapp.zip"
+    source      = "../webapp.zip"
     destination = "/tmp/webapp.zip"
   }
 
-  provisioner "file" {
-    source      = "./.env"
-    destination = "/tmp/.env"
+  # provisioner "file" {
+  #   source      = "./.env"
+  #   destination = "/tmp/.env"
+  # }
+
+  provisioner "shell" {
+    inline = [
+      "cat <<EOF > /tmp/.env",
+      "PORT=${var.app_port}",
+      "NODE_ENV=development",
+      "DB_HOST=${var.db_host}",
+      "DB_PORT=${var.db_port}",
+      "DB_NAME=${var.db_name}",
+      "DB_USER=${var.db_user}",
+      "DB_PASSWORD=${var.db_password}",
+      "EOF"
+    ]
   }
 
 
