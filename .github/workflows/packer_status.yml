@@ -1,41 +1,46 @@
-name: Packer Status Check
+name: Packer Format and Validate
 
 on:
   pull_request:
     branches:
-      - main  # Runs on PRs to the main branch
+      - main  # Runs this workflow when a PR is raised to main branch
 
 jobs:
-  packer-format-validate:
-    name: Packer Format & Validate
+  packer_format_and_validate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: zip repository code
-        run : zip -r webapp.zip .
+      - name: Checkout repository code
+        uses: actions/checkout@v3
 
       - name: Install Packer
         uses: hashicorp/setup-packer@v3
         with:
           version: latest  # Installs the latest version of Packer
 
-
+      - name: Check if Packer Config Exists
+        run: |
+          if [ -z "$(find packer/ -name '*.pkr.hcl' -o -name '*.pkr.json')" ]; then
+            echo " No Packer configuration files found in the packer/ directory!"
+            exit 1
+          fi
+          echo " Packer configuration files found."
 
       - name: Run Packer Format Check
         run: |
+          cd packer
           if ! packer fmt -check .; then
-            echo "Packer format check failed!"
+            echo " Packer format check failed! Fix formatting using 'packer fmt .'"
             exit 1
           fi
           echo "Packer format check passed."
 
       - name: Run Packer Validate
         run: |
+          cd packer
+          packer init .
           if ! packer validate .; then
-            echo " Packer validation failed!"
+            echo "Packer validation failed!"
             exit 1
           fi
-          echo " Packer validation passed."
+          echo "Packer validation passed."
