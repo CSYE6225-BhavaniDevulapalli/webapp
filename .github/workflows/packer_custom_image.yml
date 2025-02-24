@@ -42,44 +42,44 @@ jobs:
           packer init main.pkr.hcl
           packer build -machine-readable main.pkr.hcl | tee packer.log
 
-      #     # Extract AWS AMI ID (removing unwanted spaces or special characters)
-      #     AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
+          # Extract AWS AMI ID (removing unwanted spaces or special characters)
+          AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
 
-      #     # Extract GCP Image ID
-      #     GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
+          # Extract GCP Image ID
+          GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
 
-      #     # Validate and write to output
-      #     if [[ "$AMI_ID" =~ ^ami-[a-zA-Z0-9]+$ ]]; then
-      #         echo "New AWS AMI: $AMI_ID"
-      #         echo "ami_id=$AMI_ID" >> $GITHUB_ENV
-      #         echo "ami_id=$AMI_ID" >> $GITHUB_OUTPUT
-      #         echo "AMI_CREATED=true" >> $GITHUB_ENV
-      #     else
-      #         echo "Error: Invalid AMI format ($AMI_ID)"
-      #         exit 1
-      #     fi
+          # Validate and write to output
+          if [[ "$AMI_ID" =~ ^ami-[a-zA-Z0-9]+$ ]]; then
+              echo "New AWS AMI: $AMI_ID"
+              echo "ami_id=$AMI_ID" >> $GITHUB_ENV
+              echo "ami_id=$AMI_ID" >> $GITHUB_OUTPUT
+              echo "AMI_CREATED=true" >> $GITHUB_ENV
+          else
+              echo "Error: Invalid AMI format ($AMI_ID)"
+              exit 1
+          fi
 
-      #     if [[ -n "$GCP_IMAGE_ID" ]]; then
-      #         echo "New GCP Image: $GCP_IMAGE_ID"
-      #         echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_ENV
-      #         echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_OUTPUT
-      #         echo "AMI_CREATED=true" >> $GITHUB_ENV
-      #     else
-      #         echo "Error: Invalid GCP Image ID ($GCP_IMAGE_ID)"
-      #         exit 1
-      #     fi
+          if [[ -n "$GCP_IMAGE_ID" ]]; then
+              echo "New GCP Image: $GCP_IMAGE_ID"
+              echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_ENV
+              echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_OUTPUT
+              echo "AMI_CREATED=true" >> $GITHUB_ENV
+          else
+              echo "Error: Invalid GCP Image ID ($GCP_IMAGE_ID)"
+              exit 1
+          fi
 
-      # - name: Share AWS AMI with Demo Account
-      #   if: env.AMI_CREATED == 'true'
-      #   run: |
-      #     aws ec2 modify-image-attribute \
-      #       --image-id ${{ env.ami_id }} \
-      #       --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
+      - name: Share AWS AMI with Demo Account
+        if: env.AMI_CREATED == 'true'
+        run: |
+          aws ec2 modify-image-attribute \
+            --image-id ${{ env.ami_id }} \
+            --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
 
-      # - name: Share GCP Image with Demo Account
-      #   if: env.AMI_CREATED == 'true'
-      #   run: |
-      #     gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
-      #     --project=${{ secrets.GCP_PROJECT_ID }} \
-      #     --member="user:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
-      #     --role="roles/compute.imageUser"
+      - name: Share GCP Image with Demo Account
+        if: env.AMI_CREATED == 'true'
+        run: |
+          gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
+          --project=${{ secrets.GCP_PROJECT_ID }} \
+          --member="user:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
+          --role="roles/compute.imageUser"

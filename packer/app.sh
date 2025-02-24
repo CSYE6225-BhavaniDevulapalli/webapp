@@ -27,19 +27,13 @@ sudo chmod -R 755 /opt/csye6225
   
 sudo apt-get install -y unzip
  
-# echo "Unzipping Web Application..."
-# sudo cp /tmp/webapp.zip $WEBAPP_DIR/
-# cd $WEBAPP_DIR
-# sudo apt install -y unzip
-# sudo unzip -o webapp.zip
+
  
 # Copy & Extract Web Application
 echo "Copying & extracting the web application..."
 if [ -f /tmp/webapp.zip ]; then
     echo ">>>>>>> 1"
-    # sudo cp /tmp/webapp.zip /opt/csye6225
-    # cd /opt/csye6225
-    # echo ">>>>>>> 2"
+   
     sudo unzip /tmp/webapp.zip -d /opt/csye6225/webapp
 else
     echo "Error: Web application ZIP file is missing! Exiting..."
@@ -50,11 +44,10 @@ fi
 # Set Permissions for Extracted Application
 sudo chown -R csye6225:csye6225 /opt/csye6225/webapp
 sudo chmod -R 755 /opt/csye6225/webapp
- 
-# Update System Packages
-# sudo apt-get update -y  && sudo apt upgrade -y
-# sudo apt-get install -y unzip curl mysql-server
- 
+
+cd /opt/csye6225/webapp || exit  # Exit if directory doesn't exist
+sudo -u csye6225 npm install
+
 # Install MySQL database server
 sudo apt-get update
 sudo apt-get install -y mysql-server
