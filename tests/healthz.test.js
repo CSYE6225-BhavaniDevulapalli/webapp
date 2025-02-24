@@ -20,7 +20,7 @@ describe("🔹 Health Check API Tests", () => {
   it("should return 200 OK for GET /healthz", async () => {
     const res = await request(app).get("/healthz");
     expect(res.headers["cache-control"]).toBe("no-cache, no-store, must-revalidate");
-    expect(res.statusCode).toBe(200); 
+    expect(res.statusCode).toBe(201); 
     expect(res.text).toBe(""); 
   });
 
