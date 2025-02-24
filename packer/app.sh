@@ -1,17 +1,17 @@
 #!/bin/bash
-
+ 
 # Update and upgrade system packages
 sudo apt-get update -y && sudo apt-get upgrade -y
 sudo apt-get install -y unzip curl
-
-
+ 
+ 
 # Install Node.js & npm
 echo "Installing Node.js..."
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs || { echo "Error: Node.js installation failed"; exit 1; }
 npm -v || { echo "Error: npm installation failed"; exit 1; }
-
-
+ 
+ 
  
 # Create Application User
 echo "Creating application user..."
@@ -23,16 +23,16 @@ echo "Ensuring application directory exists..."
 sudo mkdir -p /opt/csye6225/webapp
 sudo chown -R csye6225:csye6225 /opt/csye6225/webapp
 sudo chmod -R 755 /opt/csye6225
-
+ 
   
-sudo apt-get install -y unzip 
-
+sudo apt-get install -y unzip
+ 
 # echo "Unzipping Web Application..."
 # sudo cp /tmp/webapp.zip $WEBAPP_DIR/
 # cd $WEBAPP_DIR
 # sudo apt install -y unzip
 # sudo unzip -o webapp.zip
-
+ 
 # Copy & Extract Web Application
 echo "Copying & extracting the web application..."
 if [ -f /tmp/webapp.zip ]; then
@@ -45,8 +45,8 @@ else
     echo "Error: Web application ZIP file is missing! Exiting..."
     exit 1
 fi
-
-
+ 
+ 
 # Set Permissions for Extracted Application
 sudo chown -R csye6225:csye6225 /opt/csye6225/webapp
 sudo chmod -R 755 /opt/csye6225/webapp
@@ -54,7 +54,7 @@ sudo chmod -R 755 /opt/csye6225/webapp
 # Update System Packages
 # sudo apt-get update -y  && sudo apt upgrade -y
 # sudo apt-get install -y unzip curl mysql-server
-
+ 
 # Install MySQL database server
 sudo apt-get update
 sudo apt-get install -y mysql-server
@@ -62,18 +62,18 @@ sudo apt-get install -y mysql-server
 # Start MySQL service and verify its status
 sudo systemctl start mysql
 sudo systemctl status mysql
-
-
+ 
+ 
 sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
 sudo mysql -e "FLUSH PRIVILEGES; EXIT;"
 sudo mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \health_check_db14\;"
  
-
+ 
 sudo systemctl restart mysql
  
 sudo cp /tmp/.env /opt/csye6225/webapp
  
-
+ 
  
 # Verify package.json Exists Before Running npm install
 # if [ ! -f /opt/csye6225/webapp/package.json ]; then
@@ -92,42 +92,42 @@ else
     echo "Error: Systemd service file is missing! Exiting..."
     exit 1
 fi
-
+ 
 # Restart, enable, and check the status of the webapp service
 sudo systemctl restart my_webapp_service.service
 sudo systemctl enable my_webapp_service.service
 sudo systemctl status my_webapp_service.service
  
-
+ 
  
 echo "Setup complete!"
-
-
-
-
-
-
-
-
-
-
-
-
-
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 # #!/bin/bash
-
+ 
 # # Update and upgrade system packages
 # sudo apt-get update -y && sudo apt-get upgrade -y
 # sudo apt-get install -y unzip curl
-
-
+ 
+ 
 # # Install Node.js & npm
 # echo "Installing Node.js..."
 # curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 # sudo apt install -y nodejs || { echo "Error: Node.js installation failed"; exit 1; }
 # npm -v || { echo "Error: npm installation failed"; exit 1; }
-
-
+ 
+ 
  
 # # Create Application User
 # echo "Creating application user..."
@@ -139,16 +139,16 @@ echo "Setup complete!"
 # sudo mkdir -p /opt/csye6225
 # sudo chown -R csye6225:csye6225 /opt/csye6225
 # sudo chmod -R 755 /opt/csye6225
-
+ 
   
-# sudo apt-get install -y unzip 
-
+# sudo apt-get install -y unzip
+ 
 # # echo "Unzipping Web Application..."
 # # sudo cp /tmp/webapp.zip $WEBAPP_DIR/
 # # cd $WEBAPP_DIR
 # # sudo apt install -y unzip
 # # sudo unzip -o webapp.zip
-
+ 
 # # Copy & Extract Web Application
 # echo "Copying & extracting the web application..."
 # if [ -f /tmp/webapp.zip ]; then
@@ -163,8 +163,8 @@ echo "Setup complete!"
 #     echo "Error: Web application ZIP file is missing! Exiting..."
 #     exit 1
 # fi
-
-
+ 
+ 
 # # Set Permissions for Extracted Application
 # sudo chown -R csye6225:csye6225 /opt/csye6225/webapp
 # sudo chmod -R 755 /opt/csye6225/webapp
@@ -172,7 +172,7 @@ echo "Setup complete!"
 # # Update System Packages
 # # sudo apt-get update -y  && sudo apt upgrade -y
 # # sudo apt-get install -y unzip curl mysql-server
-
+ 
 # # Install MySQL database server
 # sudo apt-get update
 # sudo apt-get install -y mysql-server
@@ -180,18 +180,18 @@ echo "Setup complete!"
 # # Start MySQL service and verify its status
 # sudo systemctl start mysql
 # sudo systemctl status mysql
-
-
+ 
+ 
 # sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
 # sudo mysql -e "FLUSH PRIVILEGES; EXIT;"
 # sudo mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \health_check_db14\;"
  
-
+ 
 # sudo systemctl restart mysql
  
 # sudo cp /tmp/.env /opt/csye6225/webapp
  
-
+ 
  
 # # Verify package.json Exists Before Running npm install
 # # if [ ! -f /opt/csye6225/webapp/package.json ]; then
@@ -210,19 +210,15 @@ echo "Setup complete!"
 #     echo "Error: Systemd service file is missing! Exiting..."
 #     exit 1
 # fi
-
+ 
 # # Restart, enable, and check the status of the webapp service
 # sudo systemctl restart my_webapp_service.service
 # sudo systemctl enable my_webapp_service.service
 # sudo systemctl status my_webapp_service.service
  
-
+ 
  
 # echo "Setup complete!"
-
-
-
-
-
-
-
+ 
+ 
+ 
