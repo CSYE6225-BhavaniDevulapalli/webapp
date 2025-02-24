@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Checkout repository code
         uses: actions/checkout@v3
+      
+      - name: Zip Web App
+        run: zip -r webapp.zip ./
 
       - name: Install Packer
         uses: hashicorp/setup-packer@v3
