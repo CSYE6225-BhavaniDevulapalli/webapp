@@ -1,0 +1,18 @@
+[Unit]
+Description=CSYE 6225 Web Application
+After=network.target mysql.service
+
+[Service]
+User=csye6225
+Group=csye6225
+WorkingDirectory=/opt/csye6225/WEBAPP-CSYE6225
+EnvironmentFile=-/opt/csye6225/WEBAPP-CSYE6225/.env
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target

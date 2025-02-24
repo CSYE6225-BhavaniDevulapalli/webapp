@@ -1,0 +1,76 @@
+name: Build Packer AMI & GCP Image
+
+on:
+  push:
+    branches:
+      - main  # Runs only when a PR is merged
+
+jobs:
+  packer_build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1  # Fetch only the latest commit
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Configure GCP Credentials
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: latest
+
+      - name: Run Packer Format & Validate
+        run: |
+          packer fmt -check .
+          packer init .
+          if ! packer validate .; then
+            echo "Packer validation failed!"
+            exit 1
+          fi
+
+      - name: Build AWS & GCP Images in Parallel
+        run: |
+          echo "Starting Packer Build..."
+          packer build \
+            -var 'aws_region=us-east-1' \
+            -var 'gcp_project_id=csye6225-dev-451702' \
+            -var 'source_ami=ami-04b4f1a9cf54c11d0' \
+            -var 'instance_type=t2.micro' \
+            packer-template.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Share AWS AMI with DEMO Account
+        run: |
+          echo "Fetching latest AMI ID..."
+          AMI_ID=$(aws ec2 describe-images --owners self --query 'Images[*].[ImageId,CreationDate]' --output text | sort -k2 -r | head -n1 | awk '{print $1}')
+          echo "AMI_ID=${AMI_ID}"
+
+          echo "Making AMI private..."
+          aws ec2 modify-image-attribute --image-id $AMI_ID --launch-permission "Remove=[{Group=all}]"
+
+          echo "Sharing AMI with DEMO AWS Account..."
+          aws ec2 modify-image-attribute --image-id $AMI_ID --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT_ID }}]"
+
+      - name: Verify AMI & GCP Image Creation
+        run: |
+          echo "Verifying AWS AMI..."
+          aws ec2 describe-images --image-ids $AMI_ID
+
+          echo "Verifying GCP Image..."
+          gcloud compute images list --project csye6225-dev-451702 --filter="name:csye6225-*"

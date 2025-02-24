@@ -1,0 +1,30 @@
+name: Packer Status Check
+
+on:
+  pull_request:
+    branches:
+      - main  # Change this if your default branch is different
+
+jobs:
+  packer-format-validate:
+    name: Packer Format & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Packer
+        uses: hashicorp/setup-packer@v3
+        with:
+          version: latest  # Or specify a version like "1.10.0"
+
+      - name: Run packer fmt
+        run: |
+          packer fmt -check .
+        
+
+      - name: Run packer validate
+        run: |
+          packer validate .
+        
