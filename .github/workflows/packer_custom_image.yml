@@ -33,7 +33,7 @@ jobs:
 
       - name: Zip Repository Code
         run: |
-          zip -r webapp.zip ./
+          zip -r webapp.zip webapp/
 
       - name: Run Packer to Build Images
         id: packer
