@@ -72,9 +72,14 @@ jobs:
       - name: Share AWS AMI with Demo Account
         if: env.AMI_CREATED == 'true'
         run: |
-          aws ec2 modify-image-attribute \
-            --image-id ${{ env.ami_id }} \
-            --launch-permission "{\"Add\":[{\"UserId\":\"${{ secrets.DEMO_ACCOUNT_ID }}\"}]}"
+          if [ -z "${{ secrets.DEMO_ACCOUNT_ID }}" ]; then
+            echo "DEMO_ACCOUNT_ID is not set so skipping the AMI image sharing"
+          else
+            aws ec2 modify-image-attribute \
+              --image-id ${{ env.ami_id }} \
+              --launch-permission "Add=[{UserId=${{ secrets.DEMO_ACCOUNT_ID }}}]" \
+              --region "${{ secrets.AWS_REGION }}"
+          fi
 
       - name: Share GCP Image with Demo Account
         if: env.AMI_CREATED == 'true'
