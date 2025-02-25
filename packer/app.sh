@@ -66,14 +66,7 @@ sudo systemctl restart mysql
  
 sudo cp /tmp/.env /opt/csye6225/webapp
  
- 
- 
-# Verify package.json Exists Before Running npm install
-# if [ ! -f /opt/csye6225/webapp/package.json ]; then
-#     echo "Error: package.json not found! Exiting..."
-#     exit 1
-# fi
- 
+
  
 # # Copy & Enable Systemd Service
 echo "Setting up systemd service..."
