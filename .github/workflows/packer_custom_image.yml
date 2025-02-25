@@ -42,11 +42,11 @@ jobs:
           packer init main.pkr.hcl
           packer build -machine-readable main.pkr.hcl | tee packer.log
 
-          # Extract AWS AMI ID (removing unwanted spaces or special characters)
-          AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2)
+          # Extract AWS AMI ID
+          AMI_ID=$(awk -F, '/artifact,[0-9]+,id/ {print $6}' packer.log | grep 'ami-' | head -n1 | cut -d: -f2 | tr -d '[:space:]')
 
           # Extract GCP Image ID
-          GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2)
+          GCP_IMAGE_ID=$(awk -F, '/artifact,[0-9]+,id/ {print $6}' packer.log | grep -v 'ami-' | head -n1 | tr -d '[:space:]')
 
           # Validate and write to output
           if [[ "$AMI_ID" =~ ^ami-[a-zA-Z0-9]+$ ]]; then
@@ -68,7 +68,7 @@ jobs:
               echo "Error: Invalid GCP Image ID ($GCP_IMAGE_ID)"
               exit 1
           fi
-
+          
       - name: Share AWS AMI with Demo Account
         if: env.AMI_CREATED == 'true'
         run: |
