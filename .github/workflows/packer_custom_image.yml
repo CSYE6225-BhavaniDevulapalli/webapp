@@ -43,10 +43,10 @@ jobs:
           packer build -machine-readable main.pkr.hcl | tee packer.log
 
           # Extract AWS AMI ID (removing unwanted spaces or special characters)
-          AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
+          AMI_ID=$(awk -F, '/artifact,0,id/ {print $6}' packer.log | cut -d: -f2)
 
           # Extract GCP Image ID
-          GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2 | tr -d '[:space:]')
+          GCP_IMAGE_ID=$(awk -F, '/artifact,1,id/ {print $6}' packer.log | cut -d: -f2)
 
           # Validate and write to output
           if [[ "$AMI_ID" =~ ^ami-[a-zA-Z0-9]+$ ]]; then
