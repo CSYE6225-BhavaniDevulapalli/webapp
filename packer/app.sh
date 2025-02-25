@@ -46,7 +46,7 @@ sudo chown -R csye6225:csye6225 /opt/csye6225/webapp
 sudo chmod -R 755 /opt/csye6225/webapp
 
 cd /opt/csye6225/webapp || exit  # Exit if directory doesn't exist
-sudo -u csye6225 npm install
+sudo npm install
 
 # Install MySQL database server
 sudo apt-get update
