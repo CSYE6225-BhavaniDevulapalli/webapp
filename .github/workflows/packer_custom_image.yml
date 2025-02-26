@@ -103,42 +103,70 @@ jobs:
           gcloud config set account gcp-dev@csye6225-dev-451702.iam.gserviceaccount.com
           gcloud auth list  # Debugging step to verify the active account
 
-      - name: Share GCP Image with Demo Account
-        if: env.AMI_CREATED == 'true'
+      - name: Verify Extracted Values Before Sharing
         run: |
-          echo "==== Debugging Step: Printing Variables ===="
+          echo "==== Debugging Step: Printing Extracted Variables ===="
           echo "GCP Project ID: ${{ secrets.GCP_PROJECT_ID }}"
           echo "Demo Account Email: ${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}"
           echo "Extracted GCP Image ID: ${{ env.gcp_image_id }}"
 
-          IMAGE_ID="${{ env.gcp_image_id }}"  # Extract newly created image ID
-
-          if [ -z "$IMAGE_ID" ]; then
-            echo "Error: No GCP image ID found. Exiting."
+          if [[ -z "${{ env.gcp_image_id }}" ]]; then
+            echo "ERROR: gcp_image_id is empty! The image creation step may have failed."
             exit 1
           fi
 
-          echo " Assigning IAM policies to image: $IMAGE_ID"
+          if [[ -z "${{ secrets.GCP_PROJECT_ID }}" ]]; then
+            echo "ERROR: GCP_PROJECT_ID is missing. Ensure the secret is correctly set."
+            exit 1
+          fi
 
-          # Debugging: Check if the image exists
-          echo "🔍 Checking if the image exists..."
-          gcloud compute images describe $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }} || {
-            echo " Error: Image $IMAGE_ID not found in project ${{ secrets.GCP_PROJECT_ID }}. Exiting."
+          if [[ -z "${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" ]]; then
+            echo " ERROR: GCP_DEMO_ACCOUNT_EMAIL is missing. Ensure the secret is correctly set."
+            exit 1
+          fi
+
+      - name: Check IAM Permissions for Dev Service Account
+        run: |
+          echo "==== Checking IAM Permissions for Dev Service Account ===="
+          SERVICE_ACCOUNT="serviceAccount:gcp-dev@csye6225-dev-451702.iam.gserviceaccount.com"
+
+          echo "🔍 Listing assigned roles..."
+          gcloud projects get-iam-policy ${{ secrets.GCP_PROJECT_ID }} \
+            --flatten="bindings[].members" \
+            --format="table(bindings.role)" \
+            --filter="bindings.members:$SERVICE_ACCOUNT" || {
+            echo " ERROR: Failed to retrieve IAM roles for $SERVICE_ACCOUNT"
             exit 1
           }
 
-          # Debugging: Check IAM Policy before applying changes
-          echo " Checking current IAM policies for image $IMAGE_ID..."
-          gcloud compute images get-iam-policy $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }}
+      - name: Wait for GCP Image Availability
+        run: |
+          echo " Waiting 30 seconds for GCP image to be fully available..."
+          sleep 30
 
-          echo "🔹 Running IAM Policy Binding for image..."
-          gcloud compute images add-iam-policy-binding $IMAGE_ID \
+      - name: Check if Image Exists in GCP
+        run: |
+          echo "🔍 Checking if GCP Image exists..."
+          gcloud compute images describe ${{ env.gcp_image_id }} --project=${{ secrets.GCP_PROJECT_ID }} || {
+            echo " ERROR: Image ${{ env.gcp_image_id }} not found in project ${{ secrets.GCP_PROJECT_ID }}. Exiting."
+            exit 1
+          }
+          echo "Image ${{ env.gcp_image_id }} found."
+
+      - name: Share GCP Image with Demo Account
+        run: |
+          echo " Assigning IAM policies to image: ${{ env.gcp_image_id }}"
+
+          echo " Checking current IAM policies for image..."
+          gcloud compute images get-iam-policy ${{ env.gcp_image_id }} --project=${{ secrets.GCP_PROJECT_ID }}
+
+          echo " Running IAM Policy Binding..."
+          gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
             --role="roles/compute.imageUser"
 
-          echo " Successfully shared image $IMAGE_ID with Demo Account."
-          
-          # Debugging: Verify IAM Policy after changes
+          echo " Successfully shared image ${{ env.gcp_image_id }} with Demo Account."
+
           echo " Verifying IAM policies after change..."
-          gcloud compute images get-iam-policy $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }}"
+          gcloud compute images get-iam-policy ${{ env.gcp_image_id }} --project=${{ secrets.GCP_PROJECT_ID }}
