@@ -125,19 +125,19 @@ jobs:
             exit 1
           fi
 
-      - name: Check IAM Permissions for Dev Service Account
-        run: |
-          echo "==== Checking IAM Permissions for Dev Service Account ===="
-          SERVICE_ACCOUNT="serviceAccount:gcp-dev@csye6225-dev-451702.iam.gserviceaccount.com"
+      # - name: Check IAM Permissions for Dev Service Account
+      #   run: |
+      #     echo "==== Checking IAM Permissions for Dev Service Account ===="
+      #     SERVICE_ACCOUNT="serviceAccount:gcp-dev@csye6225-dev-451702.iam.gserviceaccount.com"
 
-          echo "🔍 Listing assigned roles..."
-          gcloud projects get-iam-policy ${{ secrets.GCP_PROJECT_ID }} \
-            --flatten="bindings[].members" \
-            --format="table(bindings.role)" \
-            --filter="bindings.members:$SERVICE_ACCOUNT" || {
-            echo " ERROR: Failed to retrieve IAM roles for $SERVICE_ACCOUNT"
-            exit 1
-          }
+      #     echo "🔍 Listing assigned roles..."
+      #     gcloud projects get-iam-policy ${{ secrets.GCP_PROJECT_ID }} \
+      #       --flatten="bindings[].members" \
+      #       --format="table(bindings.role)" \
+      #       --filter="bindings.members:$SERVICE_ACCOUNT" || {
+      #       echo " ERROR: Failed to retrieve IAM roles for $SERVICE_ACCOUNT"
+      #       exit 1
+      #     }
 
       - name: Wait for GCP Image Availability
         run: |
