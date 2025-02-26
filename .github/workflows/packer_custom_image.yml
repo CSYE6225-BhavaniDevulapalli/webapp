@@ -106,11 +106,39 @@ jobs:
       - name: Share GCP Image with Demo Account
         if: env.AMI_CREATED == 'true'
         run: |
-          IMAGE_ID="${{ env.gcp_image_id }}"  # Extract newly created image ID
-          echo "Assigning IAM policies to image: $IMAGE_ID"
+          echo "==== Debugging Step: Printing Variables ===="
+          echo "GCP Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+          echo "Demo Account Email: ${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}"
+          echo "Extracted GCP Image ID: ${{ env.gcp_image_id }}"
 
-          # Grant Compute Image User role to the demo account
+          IMAGE_ID="${{ env.gcp_image_id }}"  # Extract newly created image ID
+
+          if [ -z "$IMAGE_ID" ]; then
+            echo "Error: No GCP image ID found. Exiting."
+            exit 1
+          fi
+
+          echo " Assigning IAM policies to image: $IMAGE_ID"
+
+          # Debugging: Check if the image exists
+          echo "🔍 Checking if the image exists..."
+          gcloud compute images describe $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }} || {
+            echo " Error: Image $IMAGE_ID not found in project ${{ secrets.GCP_PROJECT_ID }}. Exiting."
+            exit 1
+          }
+
+          # Debugging: Check IAM Policy before applying changes
+          echo " Checking current IAM policies for image $IMAGE_ID..."
+          gcloud compute images get-iam-policy $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }}
+
+          echo "🔹 Running IAM Policy Binding for image..."
           gcloud compute images add-iam-policy-binding $IMAGE_ID \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
             --role="roles/compute.imageUser"
+
+          echo " Successfully shared image $IMAGE_ID with Demo Account."
+          
+          # Debugging: Verify IAM Policy after changes
+          echo " Verifying IAM policies after change..."
+          gcloud compute images get-iam-policy $IMAGE_ID --project=${{ secrets.GCP_PROJECT_ID }}"
