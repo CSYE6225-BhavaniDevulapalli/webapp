@@ -88,7 +88,11 @@ jobs:
       - name: Share GCP Image with Demo Account
         if: env.AMI_CREATED == 'true'
         run: |
-          gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
-          --project=${{ secrets.GCP_PROJECT_ID }} \
-          --member="user:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
-          --role="roles/compute.imageUser"
+          IMAGE_ID="${{ env.gcp_image_id }}"  # Extract newly created image ID
+          echo "Assigning IAM policies to image: $IMAGE_ID"
+
+          # Grant Compute Image User role to the demo account
+          gcloud compute images add-iam-policy-binding $IMAGE_ID \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
+            --role="roles/compute.imageUser"
