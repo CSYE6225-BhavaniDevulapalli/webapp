@@ -120,3 +120,4 @@ Starts the application and runs Jest tests to validate functionality.
 - Added a GitHub Actions workflow to run the application tests for each pull request raised. - A pull request can only be merged if the workflow executes successfully.
 - Added Status Checks GitHub branch protectionLinks to an external site. to prevent users from merging a pull request when the GitHub Actions workflow run fails.
 - The CI check should runs the integration tests
+##
