@@ -10,6 +10,10 @@ jobs:
     name: Build AWS & GCP Images with Packer
     runs-on: ubuntu-latest
 
+    env:
+     GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.GCP_SA_KEY}}
+
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -68,6 +72,8 @@ jobs:
               echo "GCP_IMAGE_CREATED=true" >> $GITHUB_ENV
               echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_ENV
               echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_OUTPUT
+              echo "$GOOGLE_APPLICATION_CREDENTIALS"
+              echo "$GOOGLE_GHA_CREDS_PATH"
           else
               echo "Error: Invalid GCP Image ID ($GCP_IMAGE_ID)"
               exit 1
