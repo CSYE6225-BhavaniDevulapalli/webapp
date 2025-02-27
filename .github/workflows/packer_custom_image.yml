@@ -100,7 +100,7 @@ jobs:
           gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
-          --role="roles/compute.imageUser" || true
+          --role="roles/compute.imageUser"
 
 
  
