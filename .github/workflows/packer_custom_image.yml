@@ -93,12 +93,14 @@ jobs:
           fi
 
         # Share the image with the DEMO GCP project
-      - name: Share GCP Image with DEMO Account
+      - name: Share GCP Image with DEMO Account testing
         if: env.GCP_IMAGE_CREATED == 'true'
         run: |
           echo "Entered gcp"
           gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
           --project=${{ secrets.GCP_PROJECT_ID }} \
           --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
-          --role="roles/compute.imageUser"
+          --role="roles/compute.imageUser" || true
+
+
  
