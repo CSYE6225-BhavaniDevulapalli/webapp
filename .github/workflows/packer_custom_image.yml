@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-     GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.GCP_SA_KEY}}
+     GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.GCP_DEV_ACCESS_KEY}}
 
 
     steps:
@@ -28,7 +28,7 @@ jobs:
       - name: Set up GCP Credentials
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ secrets.GCP_DEV_ACCESS_KEY }}
 
       - name: Install Packer
         uses: hashicorp/setup-packer@main
