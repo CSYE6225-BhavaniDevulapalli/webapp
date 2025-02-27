@@ -69,7 +69,7 @@ jobs:
 
           if [[ -n "$GCP_IMAGE_ID" ]]; then
               echo "New GCP Image: $GCP_IMAGE_ID"
-              echo "GCP_IMAGE_CREATED=true" >> $GITHUB_ENV
+              #echo "GCP_IMAGE_CREATED=true" >> $GITHUB_ENV
               echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_ENV
               echo "gcp_image_id=$GCP_IMAGE_ID" >> $GITHUB_OUTPUT
               echo "$GOOGLE_APPLICATION_CREDENTIALS"
