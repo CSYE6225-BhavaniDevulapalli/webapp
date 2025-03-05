@@ -30,6 +30,15 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_DEV_ACCESS_KEY }}
 
+      - name: Debug GCP Authentication
+        run: |
+          echo "Checking active authentication..."
+          gcloud auth list
+          echo "Checking active project..."
+          gcloud config get-value project
+          echo "Listing available images..."
+          gcloud compute images list --project=${{ secrets.GCP_PROJECT_ID }}
+
       - name: Install Packer
         uses: hashicorp/setup-packer@main
         with:
@@ -79,6 +88,12 @@ jobs:
               exit 1
           fi
   
+      - name: Debug GCP Image Existence
+        if: env.GCP_IMAGE_CREATED == 'true'
+        run: |
+          echo "Verifying if GCP Image exists..."
+          gcloud compute images describe ${{ env.gcp_image_id }} --project=${{ secrets.GCP_PROJECT_ID }} || echo "Error: GCP Image not found!"
+
           
       - name: Share AWS AMI with Demo Account
         if: env.AMI_CREATED == 'true'
@@ -93,14 +108,29 @@ jobs:
           fi
 
         # Share the image with the DEMO GCP project
-      - name: Share GCP Image with DEMO Account testing
+      # - name: Share GCP Image with DEMO Account testing
+      #   if: env.GCP_IMAGE_CREATED == 'true'
+      #   run: |
+      #     echo "Entered gcp"
+      #     gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
+      #     --project=${{ secrets.GCP_PROJECT_ID }} \
+      #     --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
+      #     --role="roles/compute.imageUser"
+
+      - name: Share GCP Image with DEMO Account
         if: env.GCP_IMAGE_CREATED == 'true'
         run: |
-          echo "Entered gcp"
+          echo "Attempting to share GCP Image..."
           gcloud compute images add-iam-policy-binding ${{ env.gcp_image_id }} \
-          --project=${{ secrets.GCP_PROJECT_ID }} \
-          --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
-          --role="roles/compute.imageUser"
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
+            --role="roles/compute.imageUser"
+
+      - name: Debug IAM Policy of GCP Image
+        if: env.GCP_IMAGE_CREATED == 'true'
+        run: |
+          echo "Fetching IAM policy of the GCP image..."
+          gcloud compute images get-iam-policy ${{ env.gcp_image_id }} --project=${{ secrets.GCP_PROJECT_ID }}
 
 
  
