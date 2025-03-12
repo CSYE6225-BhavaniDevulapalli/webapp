@@ -160,7 +160,7 @@ packer {
 #  Define GCP Image Source
 # ==========================
 source "googlecompute" "gcp_image" {
-  project_id          = var.gcp_project_id
+  project_id          = var.bad
   source_image_family = var.source_image_family
   image_name          = "csye6225-${formatdate("YYYY-MM-DD-hh-mm-ss", timestamp())}"
   zone                = var.gcp_zone
