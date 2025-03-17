@@ -52,7 +52,7 @@ sudo npm install
 sudo apt-get update
 sudo apt-get install -y mysql-server
  
-# Start MySQL service and verify its status
+Start MySQL service and verify its status
 sudo systemctl start mysql
 sudo systemctl status mysql
  

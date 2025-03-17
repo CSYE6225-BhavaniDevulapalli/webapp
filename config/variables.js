@@ -17,5 +17,9 @@ module.exports = {
   port: process.env.PORT,
   env: process.env.NODE_ENV || 'development',
   sqlUri,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
+
+   // AWS S3 Configuration
+   awsRegion: process.env.AWS_REGION || 'us-east-1',
+   s3BucketName: process.env.S3_BUCKET_NAME || ''
 };
