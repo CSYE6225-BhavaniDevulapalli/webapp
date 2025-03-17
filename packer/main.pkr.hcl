@@ -203,7 +203,8 @@ source "amazon-ebs" "ubuntu" {
 # Build Configuration
 # ==========================
 build {
-  sources = ["source.googlecompute.gcp_image", "source.amazon-ebs.ubuntu"]
+  # sources = ["source.googlecompute.gcp_image", "source.amazon-ebs.ubuntu"]
+  sources = ["source.amazon-ebs.ubuntu"]
 
   #"source.amazon-ebs.ubuntu",
 
