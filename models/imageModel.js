@@ -1,36 +1,31 @@
-const { Model, DataTypes } = require('sequelize');
-const { sequelize } = require('../config/sequelize'); // Import sequelize instance correctly
+// models/image.js
+const { Sequelize, DataTypes } = require('sequelize');
+const { sequelize } = require('../config/sequelize'); // Adjust the import path if necessary
 
-class Image extends Model {}
-
-Image.init(
-  {
-    id: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-    },
-    file_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    url: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isUrl: true,
-      },
-    },
-    upload_date: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
+const Image = sequelize.define('Image', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
+  },
+  file_name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  url: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      isUrl: true,
     },
   },
-  {
-    sequelize,  // Ensure sequelize instance is passed here
-    tableName: 'images',
-    timestamps: false,  // Set timestamps to false as per your requirement
-  }
-);
+  upload_date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+  },
+}, {
+  tableName: 'images',
+  timestamps: false,
+});
 
 module.exports = Image;
