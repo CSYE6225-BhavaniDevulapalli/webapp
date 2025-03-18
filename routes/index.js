@@ -28,18 +28,18 @@ router.all('/healthz', (req, res) => {
   res.status(405).send();
 });
 
-// // Register file routes
-// router.use('/api', fileRoutes); 
+// // // Register file routes
+// // router.use('/api', fileRoutes); 
 
-// Registering file routes under /files
-// Upload a file
-router.post('/files', upload.single('file'), uploadFile);
+// // Registering file routes under /files
+// // Upload a file
+// router.post('/files', upload.single('file'), uploadFile);
 
-// // Get file metadata
-// router.get('/files/:id', getFileMetadata);
+// // // Get file metadata
+// // router.get('/files/:id', getFileMetadata);
 
-// // Delete a file
-// router.delete('/files/:id', deleteFile);
+// // // Delete a file
+// // router.delete('/files/:id', deleteFile);
 module.exports = router;
 
 
