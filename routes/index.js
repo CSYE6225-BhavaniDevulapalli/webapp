@@ -2,7 +2,7 @@
 const express = require('express');
 const httpStatus = require('http-status');
 const { health } = require('../controllers/healthController');
-const { uploadFile, getFileMetadata, deleteFile } = require('../controllers/fileController');
+const { uploadFile, getFileMetadata, deleteFile } = require('../controllers/imageController');
 const multer = require('multer');  // Ensure multer is installed for file handling
 const upload = multer({ dest: 'uploads/' });
 
@@ -35,11 +35,11 @@ router.all('/healthz', (req, res) => {
 // Upload a file
 router.post('/files', upload.single('file'), uploadFile);
 
-// Get file metadata
-router.get('/files/:id', getFileMetadata);
+// // Get file metadata
+// router.get('/files/:id', getFileMetadata);
 
-// Delete a file
-router.delete('/files/:id', deleteFile);
+// // Delete a file
+// router.delete('/files/:id', deleteFile);
 module.exports = router;
 
 
