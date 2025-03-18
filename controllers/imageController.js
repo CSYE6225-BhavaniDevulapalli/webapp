@@ -1,6 +1,6 @@
 
 const { s3Uploadv2, s3GetFile, s3DeleteFile } = require('../middlewares/s3');
-
+const Image = require('../models/imageModel');
 exports.uploadFile = async (req, res) => {
   try {
     const file = req.file;
@@ -12,6 +12,13 @@ exports.uploadFile = async (req, res) => {
 
     // Upload to S3
     const uploadResult = await s3Uploadv2(file);
+
+     // Save file metadata to the database
+     const newImage = await Image.create({
+        file_name: uploadResult.file_name,
+        url: uploadResult.url,
+        upload_date: uploadResult.upload_date,
+      });
 
     const response = {
       file_name: uploadResult.file_name,
@@ -60,6 +67,11 @@ exports.deleteFile = async (req, res) => {
     }
 
     await s3DeleteFile(id);
+
+     // Now, delete the metadata from the database
+     await Image.destroy({
+        where: { id }  // Assuming 'id' is the primary key
+      });
 
     return res.status(204).send(); // 204 = No Content
   } catch (error) {

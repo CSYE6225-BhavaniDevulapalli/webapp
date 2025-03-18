@@ -27,7 +27,8 @@ exports.s3Uploadv2 = async (file) => {
     return {
       id,
       file_name: file.originalname,
-      url: `${process.env.S3_BUCKET_NAME}/${s3ObjectName}`,
+      //url: `${process.env.S3_BUCKET_NAME}/${s3ObjectName}`,
+      url:result.Location,
       upload_date: new Date().toISOString()
     };
   } catch (error) {

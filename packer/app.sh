@@ -50,19 +50,19 @@ sudo npm install
 
 # Install MySQL database server
 sudo apt-get update
-sudo apt-get install -y mysql-server
+# sudo apt-get install -y mysql-server
  
-Start MySQL service and verify its status
-sudo systemctl start mysql
-sudo systemctl status mysql
- 
- 
-sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
-sudo mysql -e "FLUSH PRIVILEGES; EXIT;"
-sudo mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \health_check_db14\;"
+# Start MySQL service and verify its status
+# sudo systemctl start mysql
+# sudo systemctl status mysql
  
  
-sudo systemctl restart mysql
+# sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
+# sudo mysql -e "FLUSH PRIVILEGES; EXIT;"
+# sudo mysql -uroot -proot -e "CREATE DATABASE IF NOT EXISTS \health_check_db14\;"
+ 
+ 
+# sudo systemctl restart mysql
  
 sudo cp /tmp/.env /opt/csye6225/webapp
  
