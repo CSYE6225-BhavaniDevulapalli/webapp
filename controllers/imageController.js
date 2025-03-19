@@ -1,39 +1,46 @@
 
 const { s3Uploadv2, s3GetFile, s3DeleteFile } = require('../middlewares/s3');
 const Image = require('../models/imageModel');
+
+
+
 exports.uploadFile = async (req, res) => {
-  try {
-    const file = req.file;
-    if (!file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    console.log('File Details:', file);
-
-    // Upload to S3
-    const uploadResult = await s3Uploadv2(file);
-
-     // Save file metadata to the database
-     const newImage = await Image.create({
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+  
+      console.log('File Details:', file);
+  
+      // Upload to S3
+      const uploadResult = await s3Uploadv2(file);
+      
+      // Save file metadata to the database - now using the ID from S3 upload
+      const newImage = await Image.create({
+        id: uploadResult.id, // Use the same ID as in S3
         file_name: uploadResult.file_name,
         url: uploadResult.url,
         upload_date: uploadResult.upload_date,
+        content_type: uploadResult.content_type,
+        storage_class: uploadResult.storage_class,
+        etag: uploadResult.etag,
+        encryption_type: uploadResult.encryption_type
       });
-
-    const response = {
-      file_name: uploadResult.file_name,
-      id: uploadResult.id,
-      url: uploadResult.url,
-      upload_date: uploadResult.upload_date
-    };
-
-    return res.status(201).json(response);
-  } catch (error) {
-    console.error("Upload Error:", error.message);
-    return res.status(400).json({ message: 'Failed to upload file', error: error.message });
-  }
-};
-
+  
+      const response = {
+        file_name: uploadResult.file_name,
+        id: uploadResult.id,
+        url: uploadResult.url,
+        upload_date: uploadResult.upload_date
+      };
+  
+      return res.status(201).json(response);
+    } catch (error) {
+      console.error("Upload Error:", error.message);
+      return res.status(400).json({ message: 'Failed to upload file', error: error.message });
+    }
+  };
 exports.getFile = async (req, res) => {
   try {
     const { id } = req.params;
@@ -59,27 +66,34 @@ exports.getFile = async (req, res) => {
 };
 
 exports.deleteFile = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id) {
-      return res.status(400).json({ message: 'Invalid file ID' });
-    }
-
-    await s3DeleteFile(id);
-
-     // Now, delete the metadata from the database
-     await Image.destroy({
-        where: { id }  // Assuming 'id' is the primary key
+    try {
+      const { id } = req.params;
+  
+      if (!id) {
+        return res.status(400).json({ message: 'Invalid file ID' });
+      }
+  
+      // Delete from S3
+      await s3DeleteFile(id);
+      
+      // Delete from database
+      const deletedCount = await Image.destroy({
+        where: { id: id }
       });
-
-    return res.status(204).send(); // 204 = No Content
-  } catch (error) {
-    if (error.message.includes('not found')) {
-      return res.status(404).json({ message: 'File not found', error: error.message });
+      
+      if (deletedCount === 0) {
+        console.log(`No database record found for id: ${id}`);
+      } else {
+        console.log(`Successfully deleted database record for id: ${id}`);
+      }
+  
+      return res.status(204).send(); // 204 = No Content
+    } catch (error) {
+      if (error.message.includes('not found')) {
+        return res.status(404).json({ message: 'File not found', error: error.message });
+      }
+  
+      console.error("Delete Error:", error.message);
+      return res.status(401).json({ message: 'Unauthorized', error: error.message });
     }
-
-    console.error("Delete Error:", error.message);
-    return res.status(401).json({ message: 'Unauthorized', error: error.message });
-  }
-};
+  };
