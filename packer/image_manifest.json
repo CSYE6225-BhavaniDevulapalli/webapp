@@ -494,7 +494,25 @@
       "artifact_id": "us-east-1:ami-0a222221540dd459b",
       "packer_run_uuid": "456c48b6-2328-2e90-43b9-0c79ee076dc4",
       "custom_data": null
+    },
+    {
+      "name": "gcp_image",
+      "builder_type": "googlecompute",
+      "build_time": 1742414261,
+      "files": null,
+      "artifact_id": "csye6225-2025-03-19-19-53-53",
+      "packer_run_uuid": "32040642-c45b-ab49-56b0-1ae37ba9442b",
+      "custom_data": null
+    },
+    {
+      "name": "ubuntu",
+      "builder_type": "amazon-ebs",
+      "build_time": 1742414620,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0fb9f6448c0cbbd01",
+      "packer_run_uuid": "32040642-c45b-ab49-56b0-1ae37ba9442b",
+      "custom_data": null
     }
   ],
-  "last_run_uuid": "456c48b6-2328-2e90-43b9-0c79ee076dc4"
+  "last_run_uuid": "32040642-c45b-ab49-56b0-1ae37ba9442b"
 }
