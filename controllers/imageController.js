@@ -117,7 +117,7 @@ exports.uploadFile = async (req, res) => {
   
       // Check database connection first, similar to health endpoint
       try {
-        await sequelize.authenticate();
+        await sequelize.authenticate({ timeout: 5000 });
       } catch (dbError) {
         console.error('Database connection failed:', dbError.message);
         return res.status(503);
@@ -167,7 +167,7 @@ exports.getFile = async (req, res) => {
 
     // Check database connection before proceeding
     try {
-      await sequelize.authenticate();
+      await sequelize.authenticate({ timeout: 5000 });
     } catch (dbError) {
       console.error('Database connection failed:', dbError.message);
       return res.status(503);
@@ -199,7 +199,7 @@ exports.deleteFile = async (req, res) => {
 
     // Check database connection before proceeding
     try {
-      await sequelize.authenticate();
+      await sequelize.authenticate({ timeout: 5000 });
     } catch (dbError) {
       console.error('Database connection failed:', dbError.message);
       return res.status(503);
