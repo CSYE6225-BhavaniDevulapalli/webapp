@@ -21,5 +21,6 @@ module.exports = {
 
    // AWS S3 Configuration
    awsRegion: process.env.AWS_REGION || 'us-east-1',
-   s3BucketName: process.env.S3_BUCKET_NAME || ''
+   s3BucketName: process.env.S3_BUCKET_NAME || '',
+   ec2ip:process.env.EC2_PUBLIC_IP
 };

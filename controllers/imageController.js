@@ -112,7 +112,7 @@ const ec2Publicip = process.env.EC2_PUBLIC_IP; // This should be set in your .en
 const port = process.env.PORT; // Default to port 80 if not defined
 
 const healthCheckUrl = `http://${ec2Publicip}:${port}/healthz`; // Construct health check URL
-
+console.log(healthCheckUrl)
 // Function to check DB health
 const checkDbHealth = async () => {
   try {
@@ -129,11 +129,16 @@ const checkDbHealth = async () => {
 
 // Middleware to verify DB health before each operation
 const verifyDbConnection = async (req, res, next) => {
-  const isDbConnected = await checkDbHealth();
-  if (!isDbConnected) {
-    return res.status(503); // Service unavailable
+  try {
+    const isDbConnected = await checkDbHealth();
+    if (!isDbConnected) {
+      return res.status(503).json({ message: 'Service unavailable. Database is down.' }); // Send a 503 response with a message
+    }
+    next(); // Proceed to the actual handler if DB is healthy
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    return res.status(503).json({ message: 'Service unavailable. Unable to check database health.' });
   }
-  next(); // Proceed to the actual handler
 };
 // 
 
