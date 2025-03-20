@@ -125,7 +125,35 @@ Starts the application and runs Jest tests to validate functionality.
 
 ### used packer for creating AMI and done this for both aws and gcp parallely and also enabled github actions for events on push and pull
 
-
-
-#########
+Infrastructure Setup
+1. EC2 Instance
+Created using Terraform with an attached IAM instance profile for secure access.
+Configured with user data to set environment variables for database connection and S3 bucket.
+Set to auto-run using SystemD on reboot.
+2. RDS Instance
+Created in a private subnet with restricted internet access.
+Security group allows access only from the EC2 instance.
+Attached to a custom RDS parameter group.
+3. S3 Bucket
+Created using Terraform.
+Set to private with encryption enabled.
+Configured with a lifecycle policy to transition objects to STANDARD_IA after 30 days.
+Web Application
+REST API for file upload, retrieval, and deletion.
+Files are uploaded to S3 and metadata is stored in the RDS instance.
+APIs:
+POST /file – Upload a file
+GET /file/{id} – Retrieve file metadata
+DELETE /file/{id} – Delete file from S3 and metadata from RDS
+SystemD Configuration
+SystemD unit file ensures the application starts automatically on reboot.
+The application runs as a non-root user with secure permissions.
+Security
+EC2 and RDS instances are secured using IAM roles.
+S3 credentials are not hardcoded.
+Security groups restrict access to necessary ports only.
+Deployment Instructions
+Clone the repository.
+Update terraform.tfvars with the correct values.
+Initialize Terraform:
 
