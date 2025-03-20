@@ -105,19 +105,44 @@
 const { s3Uploadv2, s3GetFile, s3DeleteFile } = require('../middlewares/s3');
 const Image = require('../models/imageModel');
 const { sequelize } = require('../config/sequelize');
-const { Sequelize } = require('sequelize');
+//const { Sequelize } = require('sequelize');
+const axios = require('axios');
+// Get EC2 public DNS and port from environment variables
+const ec2Publicip = process.env.EC2_PUBLIC_IP; // This should be set in your .env file
+const port = process.env.PORT; // Default to port 80 if not defined
 
-const checkDbConnection = async () => {
+const healthCheckUrl = `http://${ec2Publicip}:${port}/healthz`; // Construct health check URL
+console.log(healthCheckUrl)
+// Function to check DB health
+const checkDbHealth = async () => {
   try {
-    await sequelize.authenticate({ timeout: 5000 });
-  } catch (dbError) {
-    console.error('Database connection failed:', dbError.message);
+    const response = await axios.get(healthCheckUrl);
+    if (response.status === 200) {
+      console.log('Health check passed');
+      return true;
+    }
+  } catch (error) {
+    console.error('Health check failed:', error.message);
     return false;
   }
-  return true;
 };
 
-exports.uploadFile = async (req, res) => {
+// Middleware to verify DB health before each operation
+const verifyDbConnection = async (req, res, next) => {
+  try {
+    const isDbConnected = await checkDbHealth();
+    if (!isDbConnected) {
+      return res.status(503).json({ message: 'Service unavailable. Database is down.' }); // Send a 503 response with a message
+    }
+    next(); // Proceed to the actual handler if DB is healthy
+  } catch (error) {
+    console.error('Health check failed:', error.message);
+    return res.status(503).json({ message: 'Service unavailable. Unable to check database health.' });
+  }
+};
+// 
+
+exports.uploadFile = [ verifyDbConnection,async (req, res) => {
   try {
     const file = req.file;
     if (!file) {
@@ -127,10 +152,10 @@ exports.uploadFile = async (req, res) => {
     console.log('File Details:', file);
 
     // Check database connection
-    const isDbConnected = await checkDbConnection();
-    if (!isDbConnected) {
-      return res.status(503);
-    }
+    // const isDbConnected = await checkDbConnection();
+    // if (!isDbConnected) {
+    //   return res.status(503);
+    // }
 
     // Upload to S3
     const uploadResult = await s3Uploadv2(file);
@@ -159,9 +184,10 @@ exports.uploadFile = async (req, res) => {
     console.error("Upload Error:", error.message);
     return res.status(400).json({ message: 'Failed to upload file', error: error.message });
   }
-};
+}
+];
 
-exports.getFile = async (req, res) => {
+exports.getFile = [ verifyDbConnection,async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -169,10 +195,10 @@ exports.getFile = async (req, res) => {
     }
 
     // Check database connection
-    const isDbConnected = await checkDbConnection();
-    if (!isDbConnected) {
-      return res.status(503);
-    }
+    // const isDbConnected = await checkDbConnection();
+    // if (!isDbConnected) {
+    //   return res.status(503);
+    // }
 
     const fileData = await s3GetFile(id);
 
@@ -188,9 +214,9 @@ exports.getFile = async (req, res) => {
     console.error("Get File Error:", error.message);
     return res.status(404).json({ message: 'File not found', error: error.message });
   }
-};
-
-exports.deleteFile = async (req, res) => {
+}
+];
+exports.deleteFile = [ verifyDbConnection,async (req, res) => {
   try {
     const { id } = req.params;
     if (!id) {
@@ -198,10 +224,10 @@ exports.deleteFile = async (req, res) => {
     }
 
     // Check database connection
-    const isDbConnected = await checkDbConnection();
-    if (!isDbConnected) {
-      return res.status(503);
-    }
+    // const isDbConnected = await checkDbConnection();
+    // if (!isDbConnected) {
+    //   return res.status(503);
+    // }
 
     // Delete from S3
     await s3DeleteFile(id);
@@ -224,4 +250,5 @@ exports.deleteFile = async (req, res) => {
       return res.status(404).json({ message: 'File not found', error: error.message });
     }
   }
-};
+}
+];
