@@ -1,35 +1,58 @@
+const statsd = require('../config/statsd'); // Import StatsD client from config
 
-
-const AWS = require('aws-sdk');
-const cloudwatch = new AWS.CloudWatch({
-  region: 'us-east-1'  // Set your AWS region here
-});
-
-const sendToCloudWatch = (metricName, value, unit = 'Milliseconds') => {
-  const params = {
-    MetricData: [
-      {
-        MetricName: metricName,
-        Dimensions: [
-          {
-            Name: 'API',
-            Value: metricName
-          }
-        ],
-        Unit: unit,
-        Value: value,
-      },
-    ],
-    Namespace: 'MyApp/Performance', // Customize your namespace
-  };
-
-  cloudwatch.putMetricData(params, (err, data) => {
-    if (err) {
-      console.error('Error sending metrics to CloudWatch', err);
-    } else {
-      console.log('Metrics sent to CloudWatch successfully:', data);
+/**
+ * Tracks API request duration
+ */
+const trackApiDuration = async (metricName, func) => {
+    const startTime = Date.now();
+    try {
+        return await func();
+    } finally {
+        const duration = Date.now() - startTime;
+        statsd.timing(`${metricName}.duration`, duration);
     }
-  });
 };
 
-module.exports = { sendToCloudWatch };
+/**
+ * Tracks database query execution time
+ */
+const trackDbQuery = async (metricName, func) => {
+    const startTime = Date.now();
+    try {
+        return await func();
+    } finally {
+        const duration = Date.now() - startTime;
+        statsd.timing(`database.${metricName}.duration`, duration);
+    }
+};
+
+/**
+ * Tracks S3 operation duration
+ */
+const trackS3Call = async (metricName, func) => {
+    const startTime = Date.now();
+    try {
+        return await func();
+    } finally {
+        const duration = Date.now() - startTime;
+        statsd.timing(`s3.${metricName}.duration`, duration);
+    }
+};
+
+/**
+ * Increments StatsD counters
+ */
+const incrementMetric = (metricName) => {
+    if (!statsd || !statsd.increment) {
+        console.error("StatsD client is not properly initialized.");
+        return;
+    }
+    statsd.increment(metricName);
+};
+
+module.exports = {
+    trackApiDuration,
+    trackDbQuery,
+    trackS3Call,
+    incrementMetric
+};
