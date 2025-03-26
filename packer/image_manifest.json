@@ -512,7 +512,61 @@
       "artifact_id": "us-east-1:ami-0fb9f6448c0cbbd01",
       "packer_run_uuid": "32040642-c45b-ab49-56b0-1ae37ba9442b",
       "custom_data": null
+    },
+    {
+      "name": "gcp_image",
+      "builder_type": "googlecompute",
+      "build_time": 1742863391,
+      "files": null,
+      "artifact_id": "csye6225-2025-03-25-00-39-19",
+      "packer_run_uuid": "a69cbf8e-b3a6-b6bc-cdd8-a0838e0e3ef9",
+      "custom_data": null
+    },
+    {
+      "name": "ubuntu",
+      "builder_type": "amazon-ebs",
+      "build_time": 1742863730,
+      "files": null,
+      "artifact_id": "us-east-1:ami-0ce52328e5a0a2816",
+      "packer_run_uuid": "a69cbf8e-b3a6-b6bc-cdd8-a0838e0e3ef9",
+      "custom_data": null
+    },
+    {
+      "name": "gcp_image",
+      "builder_type": "googlecompute",
+      "build_time": 1742881386,
+      "files": null,
+      "artifact_id": "csye6225-2025-03-25-05-39-10",
+      "packer_run_uuid": "552db2cc-0815-d870-de88-fca7e9c09876",
+      "custom_data": null
+    },
+    {
+      "name": "ubuntu",
+      "builder_type": "amazon-ebs",
+      "build_time": 1742881793,
+      "files": null,
+      "artifact_id": "us-east-1:ami-02640e6ed4f6302e1",
+      "packer_run_uuid": "552db2cc-0815-d870-de88-fca7e9c09876",
+      "custom_data": null
+    },
+    {
+      "name": "gcp_image",
+      "builder_type": "googlecompute",
+      "build_time": 1742943394,
+      "files": null,
+      "artifact_id": "csye6225-2025-03-25-22-52-28",
+      "packer_run_uuid": "053bb868-83b5-1552-be1e-8c5bc89bc5ba",
+      "custom_data": null
+    },
+    {
+      "name": "ubuntu",
+      "builder_type": "amazon-ebs",
+      "build_time": 1742943691,
+      "files": null,
+      "artifact_id": "us-east-1:ami-009e11de8caa8a003",
+      "packer_run_uuid": "053bb868-83b5-1552-be1e-8c5bc89bc5ba",
+      "custom_data": null
     }
   ],
-  "last_run_uuid": "32040642-c45b-ab49-56b0-1ae37ba9442b"
+  "last_run_uuid": "053bb868-83b5-1552-be1e-8c5bc89bc5ba"
 }
