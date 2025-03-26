@@ -280,7 +280,7 @@
 //   }
 // };
 const statsd = require('../config/statsd');  // StatsD client
-const { sendToCloudWatch } = require('../config/cloudwatch'); // CloudWatch integration
+const { sendToCloudWatch } = require('../middlewares/cloudWatch');
 const { s3Uploadv2 } = require('../middlewares/s3');
 const Image = require('../models/imageModel');
 const log = require('../config/logger');
