@@ -210,8 +210,8 @@ build {
 
 
   provisioner "file" {
-    source      = "../webapp-csye6225.zip"
-    destination = "/tmp/webapp-csye6225.zip"
+    source      = "../webapp.zip"
+    destination = "/tmp/webapp.zip"
   }
 
   # provisioner "file" {
