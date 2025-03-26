@@ -28,65 +28,39 @@
 // // module.exports = { health };
 
 
-// const { StatusCode } = require('http-status');
-// const { sequelize } = require('../config/sequelize');
-// const { HealthCheck } = require('../models');
-// const log = require('../config/logger');
-
-// const health = async (req, res, fileUpload) => {
-//   try {
-//     log.info('Health check request received');
-
-//     if ((Object.keys(req.body || {}).length > 0 || Object.keys(req.query || {}).length > 0) && !fileUpload) {
-//       log.warn('Bad Request: Payload detected');
-//       return res.status(400).send(); // 400 Bad Request
-//     }
-
-//     await sequelize.authenticate();
-//     await HealthCheck.create({});
-
-//     log.info('Health check successful. Sending status: 200');
-//     return fileUpload ? { statusCode: 200 } : res.status(200).send(); // OK
-//   } catch (error) {
-//     log.error(`Health check failed. Error: ${error.message}`);
-//     log.info('Sending status: 503');
-//     return fileUpload ? { statusCode: 503 } : res.status(503).send();
-//   }
-// };
-
-// module.exports = { health };
-
-const { StatusCode } = require('http-status');
 const { sequelize } = require('../config/sequelize');
 const { HealthCheck } = require('../models');
 const log = require('../config/logger');
-const statsd = require('../config/statsd');  // Import StatsD client
+const { trackApiDuration, trackDbQuery, incrementMetric } = require('../middlewares/cloudWatch'); // Import metrics utilities
 
 const health = async (req, res, fileUpload) => {
-  try {
-    log.info('Health check request received');
-    
-    // Send metrics on health check request
-    statsd.increment('health_check.requests');
-    
-    if ((Object.keys(req.body || {}).length > 0 || Object.keys(req.query || {}).length > 0) && !fileUpload) {
-      log.warn('Bad Request: Payload detected');
-      statsd.increment('health_check.bad_requests'); // Metric for bad requests
-      return res.status(400).send(); // 400 Bad Request
-    }
+    return await trackApiDuration('health_check', async () => { // Track API request duration
+        try {
+            log.info('Health check request received');
+            incrementMetric('health_check.total_requests'); // Track total requests
 
-    await sequelize.authenticate();
-    await HealthCheck.create({});
-    log.info('Health check successful. Sending status: 200');
-    statsd.increment('health_check.success');  // Metric for success
+            if ((Object.keys(req.body || {}).length > 0 || Object.keys(req.query || {}).length > 0) && !fileUpload) {
+                log.warn('Bad Request: Payload detected');
+                incrementMetric('health_check.bad_requests'); // Track bad requests
+                return res.status(400).send(); // 400 Bad Request (original)
+            }
 
-    return fileUpload ? { statusCode: 200 } : res.status(200).send(); // OK
-  } catch (error) {
-    log.error(`Health check failed. Error: ${error.message}`);
-    log.info('Sending status: 503');
-    statsd.increment('health_check.failure');  // Metric for failure
-    return fileUpload ? { statusCode: 503 } : res.status(503).send();
-  }
+            await trackDbQuery('health_check.db_connection', async () => {
+                await sequelize.authenticate();
+                await HealthCheck.create({});
+            }); // Track database authentication + insert timing
+
+            incrementMetric('health_check.success'); // Track successful health checks
+
+            log.info('Health check successful. Sending status: 200');
+            return fileUpload ? { statusCode: 200 } : res.status(200).send(); // 200 OK (original)
+        } catch (error) {
+            log.error(`Health check failed. Error: ${error.message}`);
+            log.info('Sending status: 503');
+            incrementMetric('health_check.failure'); // Track failed health checks
+            return fileUpload ? { statusCode: 503 } : res.status(503).send(); // 503 Service Unavailable (original)
+        }
+    });
 };
 
 module.exports = { health };
