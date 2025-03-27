@@ -105,18 +105,23 @@ const trackS3Call = async (metricName, func) => {
 /**
  * Increments StatsD counters
  */
+
+
 const incrementMetric = (req, event) => {
     if (!statsd || !statsd.increment) {
-        console.error("StatsD client is not properly initialized.");
-        return;
+      console.error("StatsD client is not properly initialized.");
+      return;
     }
-
+  
     const method = req.method;
-    const routePath = req.route.path;
-
-    // Use the dynamic method and path from the request, along with the event (e.g., 'failure', 'success')
+    console.log('Route:', req.route);  // Debugging line
+    console.log('Original URL:', req.originalUrl);  // Debugging line
+  
+    const routePath = req.route ? req.route.path : req.originalUrl;
+  
     statsd.increment(`${method}:${routePath}.${event}`);
-};
+  };
+  
 
 module.exports = {
     trackApiDuration,
