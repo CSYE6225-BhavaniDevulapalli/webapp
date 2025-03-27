@@ -155,7 +155,7 @@ const { health } = require('../controllers/healthController');
 const { s3Uploadv2, s3GetFile, s3DeleteFile } = require('../middlewares/s3');
 const Image = require('../models/imageModel');
 const { sequelize } = require('../config/sequelize');
-const { trackApiDuration, trackDbQuery, trackS3Call, incrementMetric } = require('../middlewares/statsd');
+const { trackApiDuration, trackDbQuery, trackS3Call, incrementMetric } = require('../middlewares/cloudWatch');
 
 /**
  * Upload File - POST /files
