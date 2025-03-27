@@ -339,7 +339,7 @@ const { trackApiDuration, trackDbQuery, trackS3Call, incrementMetric } = require
 exports.uploadFile = async (req, res) => {
     try {
         log.info('Upload request received');
-        incrementMetric(req, 'requests');  // This will dynamically use the method and route from req
+        incrementMetric(req, 'requests');  // Increment metric only once per request
         
         // Track API Duration
         await trackApiDuration(req, async () => {
@@ -404,7 +404,7 @@ exports.uploadFile = async (req, res) => {
 exports.getFile = async (req, res) => {
     try {
         log.info('Get file request received');
-        incrementMetric(req, 'requests');
+        incrementMetric(req, 'requests');  // Increment metric only once per request
 
         // Track API Duration
         await trackApiDuration(req, async () => {
@@ -453,7 +453,7 @@ exports.getFile = async (req, res) => {
 exports.deleteFile = async (req, res) => {
     try {
         log.info('Delete file request received');
-        incrementMetric(req, 'requests');
+        incrementMetric(req, 'requests');  // Increment metric only once per request
 
         // Track API Duration
         await trackApiDuration(req, async () => {
