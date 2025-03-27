@@ -19,6 +19,7 @@ const health = async (req, res, fileUpload) => {
             await trackDbQuery('GET:/healthz.db_connection', async () => {
                 await sequelize.authenticate();
                 await HealthCheck.create({});
+                
             }); // Track database authentication + insert timing
 
             incrementMetric('GET:/healthz.success'); // Track successful health checks
