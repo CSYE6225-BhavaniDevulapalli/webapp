@@ -49,7 +49,7 @@ const health = async (req, res, fileUpload) => {
             if ((Object.keys(req.body || {}).length > 0 || Object.keys(req.query || {}).length > 0) && !fileUpload) {
                 log.warn('Bad Request: Payload detected');
                 incrementMetric(req, 'bad_requests'); // Track bad requests dynamically based on method and route
-                return res.status(400).send(); // 400 Bad Request (original)
+                return res.status(400).send(); // 400 Bad Request
             }
 
             // Track database authentication + insert timing dynamically
@@ -61,12 +61,12 @@ const health = async (req, res, fileUpload) => {
             incrementMetric(req, 'success'); // Track successful health checks dynamically based on method and route
 
             log.info('Health check successful. Sending status: 200');
-            return fileUpload ? { statusCode: 200 } : res.status(200).send(); // 200 OK (original)
+            return fileUpload ? { statusCode: 200 } : res.status(200).send(); // 200 OK
         } catch (error) {
             log.error(`Health check failed. Error: ${error.message}`);
             log.info('Sending status: 503');
             incrementMetric(req, 'failure'); // Track failed health checks dynamically based on method and route
-            return fileUpload ? { statusCode: 503 } : res.status(503).send(); // 503 Service Unavailable (original)
+            return fileUpload ? { statusCode: 503 } : res.status(503).send(); // 503 Service Unavailable
         }
     });
 };
