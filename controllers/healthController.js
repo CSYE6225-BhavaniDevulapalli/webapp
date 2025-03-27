@@ -12,24 +12,24 @@ const health = async (req, res, fileUpload) => {
 
             if ((Object.keys(req.body || {}).length > 0 || Object.keys(req.query || {}).length > 0) && !fileUpload) {
                 log.warn('Bad Request: Payload detected');
-                incrementMetric('GET:/healthz.bad_requests'); // Track bad requests
+                incrementMetric('healthz.bad_requests'); // Track bad requests
                 return res.status(400).send(); // 400 Bad Request (original)
             }
 
-            await trackDbQuery('GET:/healthz.db_connection', async () => {
+            await trackDbQuery('healthz.db_connection', async () => {
                 await sequelize.authenticate();
                 await HealthCheck.create({});
                 
             }); // Track database authentication + insert timing
 
-            incrementMetric('GET:/healthz.success'); // Track successful health checks
+            incrementMetric('healthz.success'); // Track successful health checks
 
             log.info('Health check successful. Sending status: 200');
             return fileUpload ? { statusCode: 200 } : res.status(200).send(); // 200 OK (original)
         } catch (error) {
             log.error(`Health check failed. Error: ${error.message}`);
             log.info('Sending status: 503');
-            incrementMetric('GET:/healthz.failure'); // Track failed health checks
+            incrementMetric('healthz.failure'); // Track failed health checks
             return fileUpload ? { statusCode: 503 } : res.status(503).send(); // 503 Service Unavailable (original)
         }
     });
