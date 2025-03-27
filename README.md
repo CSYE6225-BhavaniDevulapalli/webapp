@@ -157,3 +157,7 @@ Clone the repository.
 Update terraform.tfvars with the correct values.
 Initialize Terraform:
 
+
+
+#### 
+added logging and metrics
