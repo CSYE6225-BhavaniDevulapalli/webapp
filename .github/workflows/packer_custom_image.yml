@@ -102,5 +102,62 @@ jobs:
           --member="serviceAccount:${{ secrets.GCP_DEMO_ACCOUNT_EMAIL }}" \
           --role="roles/compute.imageUser"
 
+      - name: Reconfigure AWS CLI to DEMO Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_DEMO_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_DEMO_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Update Launch Template with New AMI
+        id: update_lt
+        run: |
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --launch-template-name ${{ secrets.LAUNCH_TEMPLATE_NAME }} \ \
+            --source-version "\$Latest" \
+            --launch-template-data "{\"ImageId\":\"${{ env.ami_id }}\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --output text)
+
+          echo "new_lt_version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Updated launch template to version $NEW_VERSION"
+
+          aws ec2 modify-launch-template \
+            --launch-template-name ${{ secrets.LAUNCH_TEMPLATE_NAME }} \
+            --default-version "\$Latest"
+
+      - name: Start Instance Refresh
+        id: refresh
+        run: |
+          REFRESH_ID=$(aws autoscaling start-instance-refresh \
+            --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
+            --preferences '{"MinHealthyPercentage": 50}' \
+            --query 'InstanceRefreshId' \
+            --output text)
+
+          echo "refresh_id=$REFRESH_ID" >> $GITHUB_ENV
+          echo "refresh_id=$REFRESH_ID" >> $GITHUB_OUTPUT
+          echo "Started refresh: $REFRESH_ID"
+
+      - name: Wait for Instance Refresh to Complete
+        run: |
+          echo "Waiting for ASG instance refresh to complete..."
+          STATUS="InProgress"
+          until [[ "$STATUS" != "InProgress" ]]; do
+            STATUS=$(aws autoscaling describe-instance-refreshes \
+              --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
+              --instance-refresh-ids ${{ env.refresh_id }} \
+              --query 'InstanceRefreshes[0].Status' \
+              --output text)
+
+            echo "Current status: $STATUS"
+            if [[ "$STATUS" == "Failed" ]]; then
+              echo "Instance refresh failed"
+              exit 1
+            fi
+            sleep 30
+          done
+
+          echo "Instance refresh finished with status: $STATUS"
+
 
  
