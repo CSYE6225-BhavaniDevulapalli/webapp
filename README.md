@@ -161,3 +161,64 @@ Initialize Terraform:
 
 #### 
 added logging and metrics
+
+**SSL Setup for Demo Environment (Using Namecheap)**
+
+For the demo environment, I didn’t use AWS ACM to generate the certificate directly. Instead, I got a free SSL certificate from Namecheap (you can use any other vendor too, just not AWS ACM), and then imported it into AWS ACM manually.
+
+**Step 1**: **Generate a Private Key and CSR**
+
+First, I generated a private key and a certificate signing request (CSR) using OpenSSL:
+
+**openssl genrsa -out private_key.pem 2048**
+
+**openssl req -new -key private_key.pem -out csr.pem**
+
+When running the second command, I filled in the domain and location details like:
+
+Country: US
+
+State: Massachusetts
+
+Locality: Boston
+
+Organization: (put your org or just a placeholder)
+
+Common Name: your subdomain (like demo.yourdomain.com)
+
+**Step 2: Get SSL Certificate from Namecheap**
+Once I had the CSR, I uploaded it to Namecheap while requesting the certificate. After DNS/email validation, Namecheap gave me a ZIP file with:
+
+certificate.crt
+
+ca-bundle.crt
+
+I extracted the ZIP and moved everything into one folder for easier access:
+
+
+/Users/bhavanidevulapalli/Downloads/demo_devulapallibhavani_me/
+
+Also, I copied the private key I had generated into that same folder:
+
+cp ~/private_key.pem ~/Downloads/demo_devulapallibhavani_me/
+
+**Step 3: Import the Certificate into AWS ACM**
+
+After I had all three files (certificate, chain, and private key) in place, I ran this command to import the cert into AWS ACM:
+
+aws acm import-certificate \
+  --certificate fileb:///Users/bhavanidevulapalli/Downloads/demo_devulapallibhavani_me/certificate.crt \
+  --private-key fileb:///Users/bhavanidevulapalli/Downloads/demo_devulapallibhavani_me/private_key.pem \
+  --certificate-chain fileb:///Users/bhavanidevulapalli/Downloads/demo_devulapallibhavani_me/ca-bundle.crt \
+  --region us-east-1
+
+**Notes**
+
+This is only for the demo env — for dev, I just used AWS Certificate Manager to create a public cert.
+
+I didn’t set up HTTP → HTTPS redirection (not needed here).
+
+It's fine if the load balancer talks to the EC2 instance over HTTP.
+
+EC2 should not be accessible directly — only through the load balancer.
+

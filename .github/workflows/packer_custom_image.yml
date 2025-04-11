@@ -142,6 +142,7 @@ jobs:
         run: |
           echo "Waiting for ASG instance refresh to complete..."
           STATUS="InProgress"
+          
           until [[ "$STATUS" != "InProgress" ]]; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
@@ -150,14 +151,15 @@ jobs:
               --output text)
 
             echo "Current status: $STATUS"
-            if [[ "$STATUS" == "Failed" ]]; then
-              echo "Instance refresh failed"
+            
+            if [[ "$STATUS" == "Failed" || "$STATUS" == "Cancelled" ]]; then
+              echo "Instance refresh failed with status: $STATUS"
               exit 1
+            elif [[ "$STATUS" == "Successful" ]]; then
+              echo "Instance refresh completed successfully"
+              exit 0
             fi
+            
             sleep 30
           done
-
-          echo "Instance refresh finished with status: $STATUS"
-
-
- 
+      
