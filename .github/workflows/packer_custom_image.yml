@@ -141,9 +141,8 @@ jobs:
       - name: Wait for Instance Refresh to Complete
         run: |
           echo "Waiting for ASG instance refresh to complete..."
-          STATUS="InProgress"
           
-          until [[ "$STATUS" != "InProgress" ]]; do
+          while true; do
             STATUS=$(aws autoscaling describe-instance-refreshes \
               --auto-scaling-group-name ${{ secrets.ASG_NAME }} \
               --instance-refresh-ids ${{ env.refresh_id }} \
@@ -158,8 +157,11 @@ jobs:
             elif [[ "$STATUS" == "Successful" ]]; then
               echo "Instance refresh completed successfully"
               exit 0
+            elif [[ "$STATUS" == "InProgress" ]]; then
+              echo "Still in progress, continuing to wait..."
+            else
+              echo "Unexpected status: $STATUS - continuing to monitor"
             fi
             
             sleep 30
           done
-      
