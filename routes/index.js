@@ -148,6 +148,26 @@ router.get('/healthz', async (req, res) => {
   });
 });
 
+
+router.get('/cicd', async (req, res) => {
+  log.info('for testing cucd');
+  
+  const metricName = `api.healthz.${req.method}`;
+
+  await trackApiDuration(metricName, async () => {
+    try {
+      await health(req, res, false);
+      
+      // Track successful health check requests
+      incrementMetric(`${metricName}.success`);
+    } catch (error) {
+      // Track failed health check requests
+      incrementMetric(`${metricName}.failure`);
+      log.error(`cd failed: ${error.message}`);
+    }
+  });
+});
+
 // Disallowing all other methods (POST, PUT, DELETE, etc.)
 router.all('/healthz', (req, res) => {
   log.warn(`Unsupported method: ${req.method} for /healthz`);
